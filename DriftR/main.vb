@@ -2,7 +2,7 @@
 Imports core
 
 
-Module Module1
+Module main
 
     Sub main()
 

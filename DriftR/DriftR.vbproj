@@ -6,7 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{8E30FB72-424A-408A-8BAF-E5CE95182AEC}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <StartupObject>DriftR.Module1</StartupObject>
+    <StartupObject>DriftR.main</StartupObject>
     <RootNamespace>DriftR</RootNamespace>
     <AssemblyName>DriftR</AssemblyName>
     <FileAlignment>512</FileAlignment>
@@ -75,7 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="driftPercent.vb" />
-    <Compile Include="Module1.vb" />
+    <Compile Include="main.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
