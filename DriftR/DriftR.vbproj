@@ -48,7 +48,8 @@
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="core">
+    <Reference Include="core, Version=1.2021.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\core\core\bin\Release\core.dll</HintPath>
     </Reference>
     <Reference Include="System" />
