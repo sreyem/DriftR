@@ -6,12 +6,15 @@ Module main
 
     Sub main()
 
-
+restart:
+        log.LogList.Clear()
+        Console.Clear()
         mylog(LogTxtArray:=getStartInfo)
 
         showform = New frmPropGrid(
             class2Show:=test,
-             classType:=test.GetType)
+             classType:=test.GetType,
+             restart:=True)
 
 
         Try
@@ -23,7 +26,12 @@ Module main
                     .Width = 1200
                     .Height = 1300
                     .Text = test.GetType.ToString.Split(".").Last.ToUpper
-                    .ShowDialog()
+                    If .ShowDialog() = Windows.Forms.DialogResult.Retry Then
+
+                        showform.Close()
+                        GoTo restart
+
+                    End If
 
                 End With
 

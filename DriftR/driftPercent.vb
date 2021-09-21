@@ -8,7 +8,7 @@ Imports System.Text
 
 Imports core
 Imports core.FOCUSdriftDB
-
+Imports System.Drawing.Design
 
 <TypeConverter(GetType(propGridConverter))>
 Public Class appln
@@ -204,8 +204,9 @@ Public Class driftPercent
             Dim out As New StringBuilder
             Dim space As String = "                      " & vbCrLf
             Dim DateString = ""
-            Dim aqMet As String = ""
+            Dim aqMetString As String = ""
             Dim multiString As String
+            Dim singlString As String
             Dim offset As Integer = 7
 
             If Double.IsNaN(step03Single) Then
@@ -219,34 +220,56 @@ Public Class driftPercent
             End If
 
 
+            'aqua met
             If Double.IsNaN(aquaMetFactor) Or aquaMetFactor <= 0 Then
-                aqMet = ""
+                aqMetString = ""
             Else
 
                 If Me.noOfApplns > eNoOfApplns.one Then
-                    multiString = " " & step03MultiPECAquaMet.ToString("0.0000").PadLeft(9) & " µg/L "
+                    multiString = step03MultiPECAquaMet.ToString("0.0000").PadLeft(offset) & " µg/L "
                 Else
-                    multiString = " "
+                    multiString = ""
                 End If
 
-                aqMet = "Fs3 AqMet " &
-                    step03SinglePECAquaMet.ToString("0.0000").PadLeft(7) & " µg/L" & multiString & DateString & space
+                singlString = step03SinglePECAquaMet.ToString("0.0000").PadLeft(offset) & " µg/L "
+                aqMetString = "Fs3 AqMet " & multiString & singlString & space
+                'step03SinglePECAquaMet.ToString("0.0000").PadLeft(7) & " µg/L" & multiString & DateString & space
             End If
+
+            singlString = step03SinglePEC.ToString("0.0000").PadLeft(offset) & " µg/L "
 
             If Me.noOfApplns > eNoOfApplns.one Then
-                multiString = " " & step03MultiPEC.ToString("0.0000").PadLeft(7) & " µg/L "
+
+                multiString = step03MultiPEC.ToString("0.0000").PadLeft(offset) & " µg/L "
+
+                Return _
+                    "Fs3 Par   " & multiString & singlString & DateString & space &
+                    aqMetString &
+                    "Fs4 05m   " & step04_05mMulti.ToString("0.0000").PadLeft(offset) & " µg/L" & " " & space &
+                    "Fs4 10m   " & step04_10mMulti.ToString("0.0000").PadLeft(offset) & " µg/L" & " " & space &
+                    "Fs4 15m   " & step04_15mMulti.ToString("0.0000").PadLeft(offset) & " µg/L" & " " & space &
+                    "Fs4 20m   " & step04_20mMulti.ToString("0.0000").PadLeft(offset) & " µg/L" & " "
+
             Else
-                multiString = " "
+
+                multiString = ""
+
+                Return _
+                    "Fs3 Par   " & multiString & singlString & DateString & space &
+                    aqMetString &
+                    "Fs4 05m   " & step04_05m.ToString("0.0000").PadLeft(offset) & " µg/L" & " " & space &
+                    "Fs4 10m   " & step04_10m.ToString("0.0000").PadLeft(offset) & " µg/L" & " " & space &
+                    "Fs4 15m   " & step04_15m.ToString("0.0000").PadLeft(offset) & " µg/L" & " " & space &
+                    "Fs4 20m   " & step04_20m.ToString("0.0000").PadLeft(offset) & " µg/L" & " "
+
             End If
 
 
-            Return _
-                "Fs3 Par   " & step03SinglePEC.ToString("0.0000").PadLeft(offset) & "   µg/L" & multiString & DateString & space &
-                aqMet &
-                "Fs4 05m   " & step04_05m.ToString("0.0000").PadLeft(offset) & " µg/L" & " " & space &
-                "Fs4 10m   " & step04_10m.ToString("0.0000").PadLeft(offset) & " µg/L" & " " & space &
-                "Fs4 15m   " & step04_15m.ToString("0.0000").PadLeft(offset) & " µg/L" & " " & space &
-                "Fs4 20m   " & step04_20m.ToString("0.0000").PadLeft(offset) & " µg/L" & " "
+
+
+
+
+
 
             out.Append(
                 conv2String(
@@ -313,6 +336,50 @@ Public Class driftPercent
     Public Const catAppln As String = " 01 Application "
 
 #Region "    Appln Info"
+
+
+    ''' <summary>
+    ''' Show item in own window
+    ''' </summary>
+    ''' <returns></returns>
+    <Category(catAppln)>
+    <Editor(GetType(buttonEmulator), GetType(UITypeEditor))>
+    <DisplayName(
+    "Zoom ...")>
+    <Description(
+    "Show item In own window")>
+    <XmlIgnore> <ScriptIgnore>
+    <Browsable(True)>
+    <DefaultValue("")>
+    Public Property show As frmPropGrid.eViewEdit
+        Get
+            Return frmPropGrid.eViewEdit.not_def
+        End Get
+        Set
+
+            If Value = frmPropGrid.eViewEdit.not_def Then Exit Property
+
+            Dim frm As New frmPropGrid(class2Show:=Me, classType:=Me.GetType)
+
+            With frm
+
+                .Width = 900
+                .Height = 550
+
+            End With
+
+            If Value = frmPropGrid.eViewEdit.edit Then
+
+                frm.ShowDialog()
+                Me.CopyPropertiesByName(src:=frm.class2Show)
+
+            Else
+                frm.Show()
+            End If
+
+        End Set
+    End Property
+
 
     <Category(catAppln)>
     <DisplayName(
@@ -1299,6 +1366,7 @@ Public Class driftPercent
 
     <DebuggerBrowsable(DebuggerBrowsableState.Never)>
     Private _rate As Double = Double.NaN
+
     <DebuggerBrowsable(DebuggerBrowsableState.Never)>
     Private _applnMethodStep03 As eApplnMethodStep03 = eApplnMethodStep03.not_defined
 
@@ -4175,7 +4243,7 @@ Public Module FOCUSdriftDB
         }
 
 
-    Public runOffWaterDepths As Double() = {0.41, 0.305, 0.29, 0.405}
+    Public runOffWaterDepths As Double() = {0.41, 0.305, 0.29, 0.41}
 
 
 #End Region
