@@ -179,7 +179,7 @@ End Class
 <TypeConverter(GetType(propGridConverter))>
 Public Class driftPercent
 
-#Region "    Constructor & Name"
+#Region "    Constructor"
 
     Public Sub New()
 
@@ -196,7 +196,58 @@ Public Class driftPercent
     <RefreshProperties(RefreshProperties.All)>
     Public Property aquaMetFactor As Double = Double.NaN
 
+
+
+    <Browsable(False)>
+    <XmlIgnore> <ScriptIgnore>
+    Public Property collapseStd As String() =
+    {catDistances, catRegressionParameters, catSingle, catMulti}
+
+#End Region
+
+    ''' <summary>
+    ''' Input complete ?
+    ''' </summary>
+    ''' <returns></returns>
+    <Category(catInputs)>
+    <XmlIgnore> <ScriptIgnore>
+    <Browsable(False)>
+    Public ReadOnly Property inputComplete As String
+        Get
+
+            If FOCUSswDriftCrop = eFOCUSswDriftCrop.not_defined Then
+                Return "SWASH Crop ?"
+            End If
+
+            If FOCUSswWaterBody = eFOCUSswWaterBody.not_defined Then
+                Return "Water-body ?"
+            End If
+
+            If noOfApplns = eNoOfApplns.not_defined Then
+                Return "# of applns ?"
+            End If
+
+            If bufferWidth = eBufferWidth.not_defined Then
+                Return "Buffer with ?"
+            End If
+
+            Return "OK!"
+
+        End Get
+    End Property
+
+    Public Const catAppln As String = " 01 Application "
+
+#Region "    Appln Info"
+
+    ''' <summary>
+    ''' Name
+    ''' </summary>
+    ''' <returns></returns>
+    <Category(catAppln)>
     <Browsable(True)>
+    <DisplayName(
+    "Name")>
     Public ReadOnly Property name As String
 
         Get
@@ -245,10 +296,14 @@ Public Class driftPercent
                 Return _
                     "Fs3 Par   " & multiString & singlString & DateString & space &
                     aqMetString &
-                    "Fs4 05m   " & step04_05mMulti.ToString("0.0000").PadLeft(offset) & " µg/L" & " " & space &
-                    "Fs4 10m   " & step04_10mMulti.ToString("0.0000").PadLeft(offset) & " µg/L" & " " & space &
-                    "Fs4 15m   " & step04_15mMulti.ToString("0.0000").PadLeft(offset) & " µg/L" & " " & space &
-                    "Fs4 20m   " & step04_20mMulti.ToString("0.0000").PadLeft(offset) & " µg/L" & " "
+                    "Fs4 05m   " & step04_05mMulti.ToString("0.0000").PadLeft(offset) & " µg/L " &
+                                   step04_05m.ToString("0.0000").PadLeft(offset) & " µg/L" & " " & space &
+                    "Fs4 10m   " & step04_10mMulti.ToString("0.0000").PadLeft(offset) & " µg/L " &
+                                   step04_10m.ToString("0.0000").PadLeft(offset) & " µg/L" & " " & space &
+                    "Fs4 15m   " & step04_15mMulti.ToString("0.0000").PadLeft(offset) & " µg/L " &
+                                   step04_15m.ToString("0.0000").PadLeft(offset) & " µg/L" & " " & space &
+                    "Fs4 20m   " & step04_20mMulti.ToString("0.0000").PadLeft(offset) & " µg/L " &
+                                   step04_20m.ToString("0.0000").PadLeft(offset) & " µg/L"
 
             Else
 
@@ -295,49 +350,6 @@ Public Class driftPercent
 
     End Property
 
-    <Browsable(False)>
-    <XmlIgnore> <ScriptIgnore>
-    Public Property collapseStd As String() =
-    {catDistances, catRegressionParameters, catSingle, catMulti}
-
-#End Region
-
-    ''' <summary>
-    ''' Input complete ?
-    ''' </summary>
-    ''' <returns></returns>
-    <Category(catInputs)>
-    <XmlIgnore> <ScriptIgnore>
-    <Browsable(False)>
-    Public ReadOnly Property inputComplete As String
-        Get
-
-            If FOCUSswDriftCrop = eFOCUSswDriftCrop.not_defined Then
-                Return "SWASH Crop ?"
-            End If
-
-            If FOCUSswWaterBody = eFOCUSswWaterBody.not_defined Then
-                Return "Water-body ?"
-            End If
-
-            If noOfApplns = eNoOfApplns.not_defined Then
-                Return "# of applns ?"
-            End If
-
-            If bufferWidth = eBufferWidth.not_defined Then
-                Return "Buffer with ?"
-            End If
-
-            Return "OK!"
-
-        End Get
-    End Property
-
-    Public Const catAppln As String = " 01 Application "
-
-#Region "    Appln Info"
-
-
     ''' <summary>
     ''' Show item in own window
     ''' </summary>
@@ -380,7 +392,10 @@ Public Class driftPercent
         End Set
     End Property
 
-
+    ''' <summary>
+    ''' Event date
+    ''' </summary>
+    ''' <returns></returns>
     <Category(catAppln)>
     <DisplayName(
         "Event Date")>
@@ -392,7 +407,14 @@ Public Class driftPercent
     <Browsable(True)>
     <[ReadOnly](False)>
     <XmlIgnore> <ScriptIgnore>
-    Public Property eventDate As New Date
+    Public Property eventDate As Date
+        Get
+            Return _eventDate
+        End Get
+        Set
+            _eventDate = Value
+        End Set
+    End Property
 
     ''' <summary>
     ''' Target crop out of the
@@ -415,27 +437,20 @@ Public Class driftPercent
         End Get
         Set
 
+            Select Case Value
+                Case eFOCUSswDriftCrop.PF,
+                          eFOCUSswDriftCrop.OL,
+                          eFOCUSswDriftCrop.CI,
+                          eFOCUSswDriftCrop.VI,
+                          eFOCUSswDriftCrop.HP,
+                          eFOCUSswDriftCrop.VT
+                    _applnMethodStep03 = eApplnMethodStep03.airBlast
+
+                Case Else
+                    _applnMethodStep03 = eApplnMethodStep03.groundSpray
+            End Select
+
             _FOCUSswDriftCrop = Value
-
-            If _FOCUSswDriftCrop = eFOCUSswDriftCrop.VI OrElse
-                _FOCUSswDriftCrop = eFOCUSswDriftCrop.HP OrElse
-                _FOCUSswDriftCrop = eFOCUSswDriftCrop.OL OrElse
-                _FOCUSswDriftCrop = eFOCUSswDriftCrop.CI Then
-
-                _applnMethodStep03 = eApplnMethodStep03.airBlast
-                _earlyLate = eEarlyLate.not_defined
-
-            ElseIf _FOCUSswDriftCrop = eFOCUSswDriftCrop.PF Then
-
-                _earlyLate = eEarlyLate.early
-                _applnMethodStep03 = eApplnMethodStep03.airBlast
-
-            Else
-                _applnMethodStep03 = eApplnMethodStep03.groundSpray
-                _earlyLate = eEarlyLate.not_defined
-
-            End If
-
             RaiseEvent update()
 
         End Set
@@ -463,7 +478,12 @@ Public Class driftPercent
         End Get
         Set
 
-            _earlyLate = Value
+            If _FOCUSswDriftCrop <> eFOCUSswDriftCrop.PF Then
+                _earlyLate = eEarlyLate.not_defined
+            Else
+                _earlyLate = Value
+            End If
+
             RaiseEvent update()
 
         End Set
@@ -576,7 +596,10 @@ Public Class driftPercent
 
 #End Region
 
-
+    ''' <summary>
+    ''' Appln Rate
+    ''' </summary>
+    ''' <returns></returns>
     <Category(catAppln)>
     <DisplayName(
         "Rate")>
@@ -595,11 +618,17 @@ Public Class driftPercent
             Return _rate
         End Get
         Set
+
             _rate = Value
             RaiseEvent update()
+
         End Set
     End Property
 
+    ''' <summary>
+    ''' Appln method
+    ''' </summary>
+    ''' <returns></returns>
     <Category(catAppln)>
     <DisplayName("Method")>
     Public Property applnMethodStep03 As eApplnMethodStep03
@@ -607,13 +636,61 @@ Public Class driftPercent
             Return _applnMethodStep03
         End Get
         Set
+
+            Select Case Value
+
+                Case eApplnMethodStep03.soilIncorp
+
+                    If _FOCUSswDriftCrop = eFOCUSswDriftCrop.PF OrElse
+                        _FOCUSswDriftCrop = eFOCUSswDriftCrop.OL OrElse
+                        _FOCUSswDriftCrop = eFOCUSswDriftCrop.CI OrElse
+                        _FOCUSswDriftCrop = eFOCUSswDriftCrop.HP OrElse
+                        _FOCUSswDriftCrop = eFOCUSswDriftCrop.VI OrElse
+                        _FOCUSswDriftCrop = eFOCUSswDriftCrop.VT Then
+
+                        Value = _applnMethodStep03
+
+                    End If
+
+                    _Ganzelmeier = eGanzelmeier.noDrift
+
+                Case eApplnMethodStep03.airBlast
+
+                    If _FOCUSswDriftCrop <> eFOCUSswDriftCrop.PF AndAlso
+                        _FOCUSswDriftCrop <> eFOCUSswDriftCrop.OL AndAlso
+                        _FOCUSswDriftCrop <> eFOCUSswDriftCrop.CI AndAlso
+                        _FOCUSswDriftCrop <> eFOCUSswDriftCrop.HP AndAlso
+                        _FOCUSswDriftCrop <> eFOCUSswDriftCrop.VI AndAlso
+                        _FOCUSswDriftCrop <> eFOCUSswDriftCrop.VT Then
+
+                        Value = _applnMethodStep03
+
+                    End If
+
+                Case eApplnMethodStep03.granular
+
+
+                Case eApplnMethodStep03.aerial
+
+                    _Ganzelmeier = eGanzelmeier.AerialAppln
+
+                Case eApplnMethodStep03.handHigh
+
+                    _Ganzelmeier = eGanzelmeier.Vines_Late
+
+                Case eApplnMethodStep03.handLow
+
+                    _Ganzelmeier = eGanzelmeier.ArableCrops
+
+            End Select
+
             _applnMethodStep03 = Value
             RaiseEvent update()
 
         End Set
     End Property
 
-    Private Sub checkInputs()
+    Private Sub setbyApplnMethod()
 
         Select Case _applnMethodStep03
 
@@ -634,8 +711,35 @@ Public Class driftPercent
 
                 _Ganzelmeier = eGanzelmeier.ArableCrops
 
+        End Select
+
+    End Sub
+
+    Private Sub checkInputs()
+
+        Select Case _applnMethodStep03
+
+            ' special appln methods
+            Case eApplnMethodStep03.soilIncorp,
+                 eApplnMethodStep03.granular
+
+                _Ganzelmeier = eGanzelmeier.noDrift
+
+            Case eApplnMethodStep03.aerial
+
+                _Ganzelmeier = eGanzelmeier.AerialAppln
+
+            Case eApplnMethodStep03.handHigh
+
+                _Ganzelmeier = eGanzelmeier.Vines_Late
+
+            Case eApplnMethodStep03.handLow
+
+                _Ganzelmeier = eGanzelmeier.ArableCrops
+
             Case Else
 
+                'std appln method : ground spray
                 Select Case _FOCUSswDriftCrop
 
                     Case eFOCUSswDriftCrop.not_defined
@@ -648,8 +752,8 @@ Public Class driftPercent
                          eFOCUSswDriftCrop.OL,
                          eFOCUSswDriftCrop.CI,
                          eFOCUSswDriftCrop.VI,
-                         eFOCUSswDriftCrop.HP
-
+                         eFOCUSswDriftCrop.HP,
+                         eFOCUSswDriftCrop.VT
 
                         Select Case _applnMethodStep03
 
@@ -765,22 +869,40 @@ Public Class driftPercent
 
     Private Function updateRegression() As Boolean
 
-        If Me.FOCUSswDriftCrop <> eFOCUSswDriftCrop.not_defined AndAlso
-           Me.Ganzelmeier <> eGanzelmeier.not_defined AndAlso
-           Me.noOfApplns <> eNoOfApplns.not_defined AndAlso
-           Me.Ganzelmeier <> eGanzelmeier.noDrift Then
+        If _applnMethodStep03 = eApplnMethodStep03.aerial Then
+
+            A = regressionA(eGanzelmeier.AerialAppln,
+                            eNoOfApplns.one)
+
+            B = regressionB(eGanzelmeier.AerialAppln,
+                            eNoOfApplns.one)
+
+            C = regressionC(eGanzelmeier.AerialAppln,
+                            eNoOfApplns.one)
+
+            D = regressionD(eGanzelmeier.AerialAppln,
+                            eNoOfApplns.one)
+
+            Return True
+
+        ElseIf Me.FOCUSswDriftCrop <> eFOCUSswDriftCrop.not_defined AndAlso
+               Me.Ganzelmeier <> eGanzelmeier.not_defined AndAlso
+               Me.noOfApplns <> eNoOfApplns.not_defined AndAlso
+               Me.Ganzelmeier <> eGanzelmeier.noDrift AndAlso
+               Me.applnMethodStep03 <> eApplnMethodStep03.granular AndAlso
+               Me.applnMethodStep03 <> eApplnMethodStep03.soilIncorp Then
 
             A = regressionA(Ganzelmeier,
-                               noOfApplns)
+                            noOfApplns)
 
             B = regressionB(Ganzelmeier,
-                                noOfApplns)
+                            noOfApplns)
 
             C = regressionC(Ganzelmeier,
-                                noOfApplns)
+                            noOfApplns)
 
             D = regressionD(Ganzelmeier,
-                                noOfApplns)
+                            noOfApplns)
 
             Return True
 
@@ -799,6 +921,18 @@ Public Class driftPercent
 
     Public Event update()
 
+
+    Public Enum eChangePart
+
+        FOCUScrop
+        earlyLate
+        number
+        rate
+        applnMethod
+        rest
+
+    End Enum
+
     Private Sub driftPercent_update() Handles Me.update
 
 
@@ -806,15 +940,44 @@ Public Class driftPercent
 
         If Not updateRegression() Then
 
-            Me.step12Single = Double.NaN
-            Me.step12Multi = Double.NaN
-            Me.step03Single = Double.NaN
-            Me.step03Multi = Double.NaN
-            Me.step04Single = Double.NaN
-            Me.step04Multi = Double.NaN
-            Me.step03Multi = Double.NaN
-            Me.step03Multi = Double.NaN
-            Me.step03Multi = Double.NaN
+            With Me
+
+                .distanceCrop2Bank = Double.NaN
+                .distanceBank2Water = Double.NaN
+                .closest2EdgeOfField = Double.NaN
+
+
+                .nearestDriftPercentSingle = Double.NaN
+                .nearestDriftPercentMulti = Double.NaN
+
+                .farthestDriftPercentSingle = Double.NaN
+                .farthestDriftPercentMulti = Double.NaN
+
+                .step12Single = Double.NaN
+                .step12SinglePEC = Double.NaN
+                .step03SingleLoading = Double.NaN
+                .step03SinglePEC = Double.NaN
+                .step04Single = Double.NaN
+                .step04SingleLoading = Double.NaN
+                .step04SinglePEC = Double.NaN
+                .step04_05m = Double.NaN
+                .step04_10m = Double.NaN
+                .step04_15m = Double.NaN
+                .step04_20m = Double.NaN
+
+                .step12Multi = Double.NaN
+                .step12MultiPEC = Double.NaN
+                .step03MultiLoading = Double.NaN
+                .step03MultiPEC = Double.NaN
+                .step04Multi = Double.NaN
+                .step04MultiLoading = Double.NaN
+                .step04MultiPEC = Double.NaN
+                .step04_05mMulti = Double.NaN
+                .step04_10mMulti = Double.NaN
+                .step04_15mMulti = Double.NaN
+                .step04_20mMulti = Double.NaN
+
+            End With
 
             Exit Sub
 
@@ -828,9 +991,9 @@ Public Class driftPercent
 #Region "    single"
 
         Me.step12Single =
-                    calcStep12(
-                    noOfApplns:=eNoOfApplns.one,
-                    FOCUSswDriftCrop:=FOCUSswDriftCrop)
+            calcStep12(
+            noOfApplns:=eNoOfApplns.one,
+            FOCUSswDriftCrop:=FOCUSswDriftCrop)
 
         Me.step12SinglePEC = rate * Me.step12Single / 0.3
 
@@ -921,8 +1084,22 @@ Public Class driftPercent
 
 #Region "    multi"
 
+        If Me.applnMethodStep03 = eApplnMethodStep03.aerial AndAlso
+            noOfApplns > eNoOfApplns.one Then
 
-        If noOfApplns > eNoOfApplns.one Then
+            Me.step12Multi = Me.step12Single
+            Me.step12MultiPEC = Me.step12SinglePEC
+            Me.step03SingleLoading = Me.step03MultiLoading
+            Me.step03SinglePEC = Me.step03MultiPEC
+            Me.step04SingleLoading = Me.step04MultiLoading
+            Me.step04SinglePEC = Me.step04MultiPEC
+            Me.step04_05mMulti = Me.step04_05m
+            Me.step04_10mMulti = Me.step04_10m
+            Me.step04_15mMulti = Me.step04_15m
+            Me.step04_20mMulti = Me.step04_20m
+
+        ElseIf noOfApplns > eNoOfApplns.one Then
+
 
             Me.step12Multi =
                     calcStep12(
@@ -938,7 +1115,6 @@ Public Class driftPercent
             Me.step04MultiLoading = Me.rate * Me.step04Multi
 
             Me.step04MultiPEC = Me.step04MultiLoading / Me.waterDepth
-
 
 #Region "    5 - 20m"
 
@@ -996,8 +1172,6 @@ Public Class driftPercent
 
 #End Region
 
-
-
             Me.step2aMulti =
                                calcStep12(
                                 noOfApplns:=noOfApplns,
@@ -1029,6 +1203,10 @@ Public Class driftPercent
             step2aMulti = Double.NaN
             step03Multi = Double.NaN
             step04Multi = Double.NaN
+            step04_05mMulti = Double.NaN
+            step04_10mMulti = Double.NaN
+            step04_15mMulti = Double.NaN
+            step04_20mMulti = Double.NaN
 
             maxNozzleMulti = eNozzles.not_defined
             maxBufferMulti = eNozzles.not_defined
@@ -1046,6 +1224,9 @@ Public Class driftPercent
 #Region "    FOCUS"
 
 #Region "    -  "
+
+    <DebuggerBrowsable(DebuggerBrowsableState.Never)>
+    Private _eventDate As New Date
 
     <DebuggerBrowsable(DebuggerBrowsableState.Never)>
     Private _FOCUSswDriftCrop As eFOCUSswDriftCrop = eFOCUSswDriftCrop.not_defined
@@ -1139,10 +1320,9 @@ Public Class driftPercent
     <DisplayName(
     "Water Body")>
     <Description(
-        "Ditch, pond or stream" & vbCrLf &
-        "if defined for this scenario!")>
+    "Ditch, pond or stream" & vbCrLf &
+    "")>
     <RefreshProperties(RefreshProperties.All)>
-    <DebuggerBrowsable(DebuggerBrowsableState.Collapsed)>
     <Browsable(True)>
     <[ReadOnly](False)>
     <DefaultValue(CInt(eFOCUSswWaterBody.not_defined))>
@@ -1158,7 +1338,27 @@ Public Class driftPercent
         End Set
     End Property
 
+    <Category(catInputs)>
+    <DisplayName(
+    "Dimensions")>
+    <Description(
+    "lenght x width x depth; volume" & vbCrLf &
+    "")>
+    <RefreshProperties(RefreshProperties.All)>
+    <Browsable(True)>
+    <[ReadOnly](False)>
+    <DefaultValue(enumConverter(Of Type).not_defined)>
+    Public ReadOnly Property dimensions As String
+        Get
 
+            If _FOCUSswWaterBody = eFOCUSswWaterBody.not_defined Then
+                Return enumConverter(Of Type).not_defined
+            Else
+                Return wbDimensions(_FOCUSswWaterBody)
+            End If
+
+        End Get
+    End Property
 
     Private _waterDepth As Double = 0.3
 
@@ -1264,8 +1464,6 @@ Public Class driftPercent
 
         End Set
     End Property
-
-
 
 #End Region
 
@@ -1856,7 +2054,7 @@ Public Class driftPercent
 
     Public Const catSinglePECs As String = "05         PECs "
 
-#Region "    PECs Single Appln."
+#Region "    PECs Single Appln"
 
     ''' <summary>
     ''' PEC at Step 12 level
@@ -1953,7 +2151,7 @@ Public Class driftPercent
     ''' <returns></returns>
     <Category(catSinglePECs)>
     <DisplayName(
-        "    Step 04")>
+        "    Step 04 Buffer + Nozzle")>
     <Description(
         "PEC  at Step04 level" & vbCrLf &
         "in µg/L, single appln.")>
@@ -2109,7 +2307,7 @@ Public Class driftPercent
 
     Public Const catMulti As String = "06  Multi Drift %"
 
-#Region "    Drift % Multi applns."
+#Region "    Drift % Multi Applns"
 
     ''' <summary>
     ''' Drift at Step 1/2 level
@@ -2284,7 +2482,7 @@ Public Class driftPercent
 
     Public Const catMultiPECs As String = "07         PECs"
 
-#Region " Multi PECs"
+#Region "    PECs Multi Applns"
 
 
     ''' <summary>
@@ -2382,7 +2580,7 @@ Public Class driftPercent
     ''' <returns></returns>
     <Category(catMultiPECs)>
     <DisplayName(
-        "    Step 04")>
+        "    Step 04 Buffer + Nozzle")>
     <Description(
         "PEC  at Step04 level" & vbCrLf &
         "in µg/L, multi appln.")>
@@ -2534,6 +2732,7 @@ Public Class driftPercent
     Public Property step04_20mMulti As Double = Double.NaN
 
 #End Region
+
 End Class
 
 <TypeConverter(GetType(propGridConverter))>
@@ -2934,37 +3133,50 @@ Public Module FOCUSdriftDB
 
         '-------------------------------------------------------------
 
-        '<Description(
-        '    "AA " & vbCrLf &
-        '    "Aerial appln." & spaceString & vbCrLf &
-        '    "")>
-        'AA_Aerial
 
-        '''' <summary>
-        '''' HL Appln, hand (crop < 50 cm)
-        '''' </summary>
-        '<Description(
-        '    "HL " & vbCrLf &
-        '    "Appln, hand (crop < 50 cm)")>
-        'HL
-
-        '''' <summary>
-        '''' HH Appln, hand (crop > 50 cm)
-        '''' </summary>
-        '<Description(
-        '    "HH " & vbCrLf &
-        '    "Appln, hand (crop > 50 cm)")>
-        'HH
+        ''' <summary>
+        ''' VIL Vines, late, for compatibility reasons
+        ''' </summary>
+        <Description(
+                "VT " & vbCrLf &
+                "Vines, late")>
+        VT
 
 
-        '<Description(
-        '    "ND " & vbCrLf &
-        '    "No drift " & spaceString & vbCrLf &
-        '    "(incorp or seed trtmt)")>
-        'ND_NoDrift
+        ''' <summary>
+        ''' Aerial appln.
+        ''' </summary>
+        <Description(
+            "AA " & vbCrLf &
+            "Aerial appln." & vbCrLf &
+            "")>
+        AA = 24
+
+        ''' <summary>
+        ''' HL Appln, hand (crop < 50 cm)
+        ''' </summary>
+        <Description(
+            "HL " & vbCrLf &
+            "Appln, hand (crop < 50 cm)")>
+        HL
+
+        ''' <summary>
+        ''' HH Appln, hand (crop > 50 cm)
+        ''' </summary>
+        <Description(
+            "HH " & vbCrLf &
+            "Appln, hand (crop > 50 cm)")>
+        HH
+
+        ''' <summary>
+        ''' no drift (incorporatio or seed treatment)
+        ''' </summary>
+        <Description(
+            "ND " & vbCrLf &
+            "No drift ")>
+        ND_NoDrift
 
     End Enum
-
 
     Public cropXScenarios As String() =
                 {
@@ -3152,23 +3364,25 @@ Public Module FOCUSdriftDB
 
         <Description(
                 "DI " & vbCrLf &
-                "ditch " & vbCrLf &
-                "100m " & myConst.multiply & " 1m " & myConst.multiply & " 0.3m; 30,000L; 1.0")>
+                "ditch ")>
         ditch = 0
 
         <Description(
                 "ST " & vbCrLf &
-                "stream " & vbCrLf &
-                "100m " & myConst.multiply & " 1m " & myConst.multiply & " 0.3m; 30,000L; 1.2")>
+                "stream ")>
         stream
 
         <Description(
                 "PO " & vbCrLf &
-                "pond " & vbCrLf &
-                "30m radius " & myConst.multiply & " 1.0m; ~94,000L; 1.0")>
+                "pond ")>
         pond
 
     End Enum
+
+    Public wbDimensions As String() =
+        {"100m " & myConst.multiply & " 1m " & myConst.multiply & " 0.3m; 30,000L",
+         "100m " & myConst.multiply & " 1m " & myConst.multiply & " 0.3m; 30,000L",
+         "30m radius " & myConst.multiply & " 1.0m; ~94,000L"}
 
     ''' <summary>
     ''' Number of applns.
@@ -3452,46 +3666,51 @@ Public Module FOCUSdriftDB
 
         Dim herbicideUse As Boolean = False
         Dim earlyLate As eEarlyLate = eEarlyLate.not_defined
+        Dim dummyFOCUSswDriftCrop As eFOCUSswDriftCrop = eFOCUSswDriftCrop.not_defined
 
         With driftPercent
 
-            If _
-                    .FOCUSswDriftCrop <> eFOCUSswDriftCrop.not_defined AndAlso
-                    .FOCUSswWaterBody <> eFOCUSswWaterBody.not_defined AndAlso
-                    .noOfApplns <> eNoOfApplns.not_defined Then
+            dummyFOCUSswDriftCrop = .FOCUSswDriftCrop
 
+            If _
+                .FOCUSswDriftCrop <> eFOCUSswDriftCrop.not_defined AndAlso
+                .FOCUSswWaterBody <> eFOCUSswWaterBody.not_defined AndAlso
+                .noOfApplns <> eNoOfApplns.not_defined AndAlso
+                .applnMethodStep03 <> eApplnMethodStep03.soilIncorp AndAlso
+                .applnMethodStep03 <> eApplnMethodStep03.granular Then
+
+
+                If .applnMethodStep03 = eApplnMethodStep03.handHigh Then
+
+                    dummyFOCUSswDriftCrop = eFOCUSswDriftCrop.HH
+
+                ElseIf .applnMethodStep03 = eApplnMethodStep03.handLow Then
+
+                    dummyFOCUSswDriftCrop = eFOCUSswDriftCrop.HL
+
+                ElseIf .applnMethodStep03 = eApplnMethodStep03.aerial Then
+
+                    dummyFOCUSswDriftCrop = eFOCUSswDriftCrop.AA
+
+                Else
+
+                    dummyFOCUSswDriftCrop = .FOCUSswDriftCrop
+
+                End If
 
                 If .bufferWidth = eBufferWidth.FOCUSStep03 Then
 
-                    If .applnMethodStep03 = eApplnMethodStep03.handHigh Then
-
-                        .distanceCrop2Bank =
+                    .distanceCrop2Bank =
                         getFOCUSStdDistance(
-                                FOCUSswDriftCrop:=eFOCUSswDriftCrop.VI,
+                                FOCUSswDriftCrop:=dummyFOCUSswDriftCrop,
                                 FOCUSswWaterBody:= .FOCUSswWaterBody,
                                 FOCUSstdDistancesMember:=eFOCUSStdDistancesMember.edgeField2topBank)
 
-                        .distanceBank2Water =
-                        getFOCUSStdDistance(
-                                FOCUSswDriftCrop:=eFOCUSswDriftCrop.VI,
-                                FOCUSswWaterBody:= .FOCUSswWaterBody,
-                                FOCUSstdDistancesMember:=eFOCUSStdDistancesMember.topBank2edgeWaterbody)
-
-                    Else
-
-                        .distanceCrop2Bank =
-                        getFOCUSStdDistance(
-                                FOCUSswDriftCrop:= .FOCUSswDriftCrop,
-                                FOCUSswWaterBody:= .FOCUSswWaterBody,
-                                FOCUSstdDistancesMember:=eFOCUSStdDistancesMember.edgeField2topBank)
-
-                        .distanceBank2Water =
+                    .distanceBank2Water =
                             getFOCUSStdDistance(
-                                    FOCUSswDriftCrop:= .FOCUSswDriftCrop,
+                                    FOCUSswDriftCrop:=dummyFOCUSswDriftCrop,
                                     FOCUSswWaterBody:= .FOCUSswWaterBody,
                                     FOCUSstdDistancesMember:=eFOCUSStdDistancesMember.topBank2edgeWaterbody)
-
-                    End If
 
                     .closest2EdgeOfField =
                                     .distanceCrop2Bank + .distanceBank2Water
@@ -3514,12 +3733,12 @@ Public Module FOCUSdriftDB
 
                 .hingePoint =
                         hingePointDB(
-                                convertFOCUSCrop2Ganzelmeier(.FOCUSswDriftCrop),
+                                convertFOCUSCrop2Ganzelmeier(dummyFOCUSswDriftCrop),
                                 .noOfApplns)
 
                 .nearestDriftPercentSingle = calcDriftPercent(
                               noOfApplns:=eNoOfApplns.one,
-                        FOCUSswDriftCrop:= .FOCUSswDriftCrop,
+                        FOCUSswDriftCrop:=dummyFOCUSswDriftCrop,
                         FOCUSswWaterBody:= .FOCUSswWaterBody,
                            driftDistance:=eDriftDistance.closest,
                              bufferWidth:= .bufferWidth,
@@ -3529,7 +3748,7 @@ Public Module FOCUSdriftDB
 
                 .farthestDriftPercentSingle = calcDriftPercent(
                               noOfApplns:=eNoOfApplns.one,
-                        FOCUSswDriftCrop:= .FOCUSswDriftCrop,
+                        FOCUSswDriftCrop:=dummyFOCUSswDriftCrop,
                         FOCUSswWaterBody:= .FOCUSswWaterBody,
                            driftDistance:=eDriftDistance.farthest,
                              bufferWidth:= .bufferWidth,
@@ -3539,7 +3758,7 @@ Public Module FOCUSdriftDB
 
                 .step03Single = calcDriftPercent(
                               noOfApplns:=eNoOfApplns.one,
-                        FOCUSswDriftCrop:= .FOCUSswDriftCrop,
+                        FOCUSswDriftCrop:=dummyFOCUSswDriftCrop,
                         FOCUSswWaterBody:= .FOCUSswWaterBody,
                            driftDistance:=eDriftDistance.average,
                              bufferWidth:=eBufferWidth.FOCUSStep03,
@@ -3548,58 +3767,72 @@ Public Module FOCUSdriftDB
                                   earlyLate:=earlyLate)
 
                 .step04Single = calcDriftPercent(
-                              noOfApplns:=eNoOfApplns.one,
-                        FOCUSswDriftCrop:= .FOCUSswDriftCrop,
-                        FOCUSswWaterBody:= .FOCUSswWaterBody,
-                           driftDistance:=eDriftDistance.average,
-                             bufferWidth:= .bufferWidth,
-                                  Nozzle:= .nozzle,
-                                  herbicideUse:=herbicideUse,
-                                  earlyLate:=earlyLate)
+                            noOfApplns:=eNoOfApplns.one,
+                    FOCUSswDriftCrop:=dummyFOCUSswDriftCrop,
+                    FOCUSswWaterBody:= .FOCUSswWaterBody,
+                        driftDistance:=eDriftDistance.average,
+                        bufferWidth:= .bufferWidth,
+                                Nozzle:= .nozzle,
+                                herbicideUse:=herbicideUse,
+                                earlyLate:=earlyLate)
+
 
                 If .noOfApplns > eNoOfApplns.one Then
 
-                    .nearestDriftPercentMulti = calcDriftPercent(
-                                                  noOfApplns:= .noOfApplns,
-                                            FOCUSswDriftCrop:= .FOCUSswDriftCrop,
-                                            FOCUSswWaterBody:= .FOCUSswWaterBody,
-                                               driftDistance:=eDriftDistance.closest,
-                                                 bufferWidth:= .bufferWidth,
-                                                      Nozzle:= .nozzle,
-                                  herbicideUse:=herbicideUse,
-                                  earlyLate:=earlyLate)
+                    If .applnMethodStep03 = eApplnMethodStep03.aerial Then
+
+                        .nearestDriftPercentMulti = .nearestDriftPercentSingle
+                        .farthestDriftPercentMulti = .farthestDriftPercentSingle
+                        .step03Multi = .step03Single
+                        .step04Multi = .step04Single
+
+                    Else
+
+                        .nearestDriftPercentMulti = calcDriftPercent(
+                                                      noOfApplns:= .noOfApplns,
+                                                FOCUSswDriftCrop:=dummyFOCUSswDriftCrop,
+                                                FOCUSswWaterBody:= .FOCUSswWaterBody,
+                                                   driftDistance:=eDriftDistance.closest,
+                                                     bufferWidth:= .bufferWidth,
+                                                          Nozzle:= .nozzle,
+                                      herbicideUse:=herbicideUse,
+                                      earlyLate:=earlyLate)
 
 
-                    .farthestDriftPercentMulti = calcDriftPercent(
-                                                  noOfApplns:= .noOfApplns,
-                                            FOCUSswDriftCrop:= .FOCUSswDriftCrop,
-                                            FOCUSswWaterBody:= .FOCUSswWaterBody,
-                                               driftDistance:=eDriftDistance.farthest,
-                                                 bufferWidth:= .bufferWidth,
-                                                      Nozzle:= .nozzle,
-                                  herbicideUse:=herbicideUse,
-                                  earlyLate:=earlyLate)
+                        .farthestDriftPercentMulti = calcDriftPercent(
+                                                      noOfApplns:= .noOfApplns,
+                                                FOCUSswDriftCrop:=dummyFOCUSswDriftCrop,
+                                                FOCUSswWaterBody:= .FOCUSswWaterBody,
+                                                   driftDistance:=eDriftDistance.farthest,
+                                                     bufferWidth:= .bufferWidth,
+                                                          Nozzle:= .nozzle,
+                                      herbicideUse:=herbicideUse,
+                                      earlyLate:=earlyLate)
 
 
-                    .step03Multi = calcDriftPercent(
-                              noOfApplns:= .noOfApplns,
-                        FOCUSswDriftCrop:= .FOCUSswDriftCrop,
-                        FOCUSswWaterBody:= .FOCUSswWaterBody,
-                           driftDistance:=eDriftDistance.average,
-                             bufferWidth:=eBufferWidth.FOCUSStep03,
-                                  Nozzle:=eNozzles._0,
-                                  herbicideUse:=herbicideUse,
-                                  earlyLate:=earlyLate)
+                        .step03Multi = calcDriftPercent(
+                                  noOfApplns:= .noOfApplns,
+                            FOCUSswDriftCrop:=dummyFOCUSswDriftCrop,
+                            FOCUSswWaterBody:= .FOCUSswWaterBody,
+                               driftDistance:=eDriftDistance.average,
+                                 bufferWidth:=eBufferWidth.FOCUSStep03,
+                                      Nozzle:=eNozzles._0,
+                                      herbicideUse:=herbicideUse,
+                                      earlyLate:=earlyLate)
 
-                    .step04Multi = calcDriftPercent(
-                                                 noOfApplns:= .noOfApplns,
-                                           FOCUSswDriftCrop:= .FOCUSswDriftCrop,
-                                           FOCUSswWaterBody:= .FOCUSswWaterBody,
-                                              driftDistance:=eDriftDistance.average,
-                                                bufferWidth:= .bufferWidth,
-                                                     Nozzle:= .nozzle,
-                                  herbicideUse:=herbicideUse,
-                                  earlyLate:=earlyLate)
+                        .step04Multi = calcDriftPercent(
+                                            noOfApplns:= .noOfApplns,
+                                    FOCUSswDriftCrop:=dummyFOCUSswDriftCrop,
+                                    FOCUSswWaterBody:= .FOCUSswWaterBody,
+                                        driftDistance:=eDriftDistance.average,
+                                        bufferWidth:= .bufferWidth,
+                                                Nozzle:= .nozzle,
+                            herbicideUse:=herbicideUse,
+                            earlyLate:=earlyLate)
+
+
+
+                    End If
 
                 Else
 
@@ -3622,8 +3855,29 @@ Public Module FOCUSdriftDB
                 .farthestDriftPercentSingle = Double.NaN
                 .farthestDriftPercentMulti = Double.NaN
 
+                .step12Single = Double.NaN
+                .step12SinglePEC = Double.NaN
+                .step03SingleLoading = Double.NaN
+                .step03SinglePEC = Double.NaN
                 .step04Single = Double.NaN
+                .step04SingleLoading = Double.NaN
+                .step04SinglePEC = Double.NaN
+                .step04_05m = Double.NaN
+                .step04_10m = Double.NaN
+                .step04_15m = Double.NaN
+                .step04_20m = Double.NaN
+
+                .step12Multi = Double.NaN
+                .step12MultiPEC = Double.NaN
+                .step03MultiLoading = Double.NaN
+                .step03MultiPEC = Double.NaN
                 .step04Multi = Double.NaN
+                .step04MultiLoading = Double.NaN
+                .step04MultiPEC = Double.NaN
+                .step04_05mMulti = Double.NaN
+                .step04_10mMulti = Double.NaN
+                .step04_15mMulti = Double.NaN
+                .step04_20mMulti = Double.NaN
 
             End If
 
@@ -3672,6 +3926,10 @@ Public Module FOCUSdriftDB
 
             Return Double.NaN
 
+        End If
+
+        If Nozzle = eNozzles.not_defined Then
+            Nozzle = eNozzles._0
         End If
 
 
@@ -4168,9 +4426,6 @@ Public Module FOCUSdriftDB
             "VR|vegetables, root|ditch|0.5|0.5",
             "VR|vegetables, root|stream|0.5|1",
             "VR|vegetables, root|pond|0.5|3",
-            "K5|appln, hand (crop < 50 cm)|ditch|0.5|0.5",
-            "K5|appln, hand (crop < 50 cm)|stream|0.5|1",
-            "K5|appln, hand (crop < 50 cm)|pond|0.5|3",
             "PS|potatoes|ditch|0.8|0.5",
             "PS|potatoes|stream|0.8|1",
             "PS|potatoes|pond|0.8|3",
@@ -4213,12 +4468,18 @@ Public Module FOCUSdriftDB
             "VI|vines|ditch|3|0.5",
             "VI|vines|stream|3|1",
             "VI|vines|pond|3|3",
+            "VT|vines, late|ditch|3|0.5",
+            "VT|vines, late|stream|3|1",
+            "VT|vines, late|pond|3|3",
             "HH|appln, hand (crop > 50 cm)|ditch|3|0.5",
             "HH|appln, hand (crop > 50 cm)|stream|3|1",
             "HH|appln, hand (crop > 50 cm)|pond|3|3",
-            "HL|appln, aerial|ditch|5|0.5",
-            "HL|appln, aerial|stream|5|1",
-            "HL|appln, aerial|pond|5|3"
+            "HL|appln, hand (crop < 50 cm)|ditch|0.5|0.5",
+            "HL|appln, hand (crop < 50 cm)|stream|0.5|1",
+            "HL|appln, hand (crop < 50 cm)|pond|0.5|3",
+            "AA|appln, aerial|ditch|5|0.5",
+            "AA|appln, aerial|stream|5|1",
+            "AA|appln, aerial|pond|5|3"
         }
 
 #End Region
@@ -4341,6 +4602,7 @@ Public Module FOCUSdriftDB
            eGanzelmeier.ArableCrops,
            eGanzelmeier.ArableCrops,
            eGanzelmeier.Vines_Early,
+           eGanzelmeier.Vines_Late,
            eGanzelmeier.AerialAppln,
            eGanzelmeier.ArableCrops,
            eGanzelmeier.Vines_Late,

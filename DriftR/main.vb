@@ -7,6 +7,9 @@ Module main
     Sub main()
 
 restart:
+
+        fillTest()
+
         log.LogList.Clear()
         Console.Clear()
         mylog(LogTxtArray:=getStartInfo)
@@ -49,5 +52,19 @@ restart:
 
     Public showform As frmPropGrid
     Public WithEvents test As New driftPercent
+
+    Public Sub fillTest()
+
+        With test
+
+            .FOCUSswDriftCrop = eFOCUSswDriftCrop.CS
+            .noOfApplns = eNoOfApplns.one
+            .rate = 0.125
+            .FOCUSswWaterBody = eFOCUSswWaterBody.ditch
+
+        End With
+
+    End Sub
+
 
 End Module
