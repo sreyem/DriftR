@@ -752,8 +752,8 @@ Public Class driftPercent
                          eFOCUSswDriftCrop.OL,
                          eFOCUSswDriftCrop.CI,
                          eFOCUSswDriftCrop.VI,
-                         eFOCUSswDriftCrop.HP,
-                         eFOCUSswDriftCrop.VT
+                         eFOCUSswDriftCrop.VT,
+                         eFOCUSswDriftCrop.HP
 
                         Select Case _applnMethodStep03
 
@@ -832,7 +832,7 @@ Public Class driftPercent
                                         _earlyLate = eEarlyLate.not_defined
 
                                 End Select
-                                _Ganzelmeier = convertFOCUSCrop2Ganzelmeier(FOCUSswDriftCrop)
+                                '_Ganzelmeier = convertFOCUSCrop2Ganzelmeier(FOCUSswDriftCrop)
 
                             Case eApplnMethodStep03.handHigh
 
@@ -991,7 +991,7 @@ Public Class driftPercent
 #Region "    single"
 
         Me.step12Single =
-            calcStep12(
+            calcDriftPercentStep12(
             noOfApplns:=eNoOfApplns.one,
             FOCUSswDriftCrop:=FOCUSswDriftCrop)
 
@@ -1060,10 +1060,10 @@ Public Class driftPercent
 
 #End Region
 
-        Me.step2aSingle = calcStep12(
-                noOfApplns:=eNoOfApplns.one,
-                FOCUSswDriftCrop:=FOCUSswDriftCrop,
-                bufferWidth:=bufferWidth)
+        'Me.step2aSingle = calcDriftPercentStep12(
+        '        noOfApplns:=eNoOfApplns.one,
+        '        FOCUSswDriftCrop:=FOCUSswDriftCrop,
+        '        bufferWidth:=bufferWidth)
 
         maxNozzleSingle =
                    calcMaxNozzle(
@@ -1085,7 +1085,7 @@ Public Class driftPercent
 #Region "    multi"
 
         If Me.applnMethodStep03 = eApplnMethodStep03.aerial AndAlso
-            noOfApplns > eNoOfApplns.one Then
+           Me.noOfApplns > eNoOfApplns.one Then
 
             Me.step12Multi = Me.step12Single
             Me.step12MultiPEC = Me.step12SinglePEC
@@ -1102,7 +1102,7 @@ Public Class driftPercent
 
 
             Me.step12Multi =
-                    calcStep12(
+                    calcDriftPercentStep12(
                     noOfApplns:=noOfApplns,
                     FOCUSswDriftCrop:=FOCUSswDriftCrop)
 
@@ -1125,7 +1125,7 @@ Public Class driftPercent
                         FOCUSswWaterBody:=Me.FOCUSswWaterBody,
                            driftDistance:=eDriftDistance.average,
                              bufferWidth:=5,
-                                  Nozzle:=0,
+                                  nozzle:=0,
                                   herbicideUse:=IIf(applnMethodStep03 = eApplnMethodStep03.groundSpray, True, False),
                                   earlyLate:=earlyLate)
 
@@ -1138,7 +1138,7 @@ Public Class driftPercent
                         FOCUSswWaterBody:=Me.FOCUSswWaterBody,
                            driftDistance:=eDriftDistance.average,
                              bufferWidth:=10,
-                                  Nozzle:=0,
+                                  nozzle:=0,
                                   herbicideUse:=IIf(applnMethodStep03 = eApplnMethodStep03.groundSpray, True, False),
                                   earlyLate:=earlyLate)
 
@@ -1151,7 +1151,7 @@ Public Class driftPercent
                         FOCUSswWaterBody:=Me.FOCUSswWaterBody,
                            driftDistance:=eDriftDistance.average,
                              bufferWidth:=15,
-                                  Nozzle:=0,
+                                  nozzle:=0,
                                   herbicideUse:=IIf(applnMethodStep03 = eApplnMethodStep03.groundSpray, True, False),
                                   earlyLate:=earlyLate)
 
@@ -1163,7 +1163,7 @@ Public Class driftPercent
                         FOCUSswWaterBody:=Me.FOCUSswWaterBody,
                            driftDistance:=eDriftDistance.average,
                              bufferWidth:=20,
-                                  Nozzle:=0,
+                                  nozzle:=0,
                                   herbicideUse:=IIf(applnMethodStep03 = eApplnMethodStep03.groundSpray, True, False),
                                   earlyLate:=earlyLate)
 
@@ -1173,7 +1173,7 @@ Public Class driftPercent
 #End Region
 
             Me.step2aMulti =
-                               calcStep12(
+                               calcDriftPercentStep12(
                                 noOfApplns:=noOfApplns,
                                 FOCUSswDriftCrop:=FOCUSswDriftCrop,
                                 bufferWidth:=bufferWidth)
@@ -1219,7 +1219,7 @@ Public Class driftPercent
 
 #End Region
 
-    Public Const catInputs As String = "01 FOCUS"
+    Public Const catInputs As String = "01  FOCUS"
 
 #Region "    FOCUS"
 
@@ -1251,6 +1251,9 @@ Public Class driftPercent
 
     <DebuggerBrowsable(DebuggerBrowsableState.Never)>
     Private _maxTotalReduction As Integer = 95
+
+    <DebuggerBrowsable(DebuggerBrowsableState.Never)>
+    Private _waterDepth As Double = 0.3
 
 #End Region
 
@@ -1308,7 +1311,13 @@ Public Class driftPercent
         End Get
         Set
             _scenario = Value
-            _waterDepth = runOffWaterDepths(_scenario)
+
+            If _scenario <> eFOCUSswScenario.not_defined Then
+                waterDepth = runOffWaterDepths(_scenario)
+            Else
+                waterDepth = 0.3
+            End If
+
         End Set
     End Property
 
@@ -1338,6 +1347,11 @@ Public Class driftPercent
         End Set
     End Property
 
+    ''' <summary>
+    ''' Dimensions
+    ''' lenght x width x depth; volume
+    ''' </summary>
+    ''' <returns></returns>
     <Category(catInputs)>
     <DisplayName(
     "Dimensions")>
@@ -1360,8 +1374,11 @@ Public Class driftPercent
         End Get
     End Property
 
-    Private _waterDepth As Double = 0.3
 
+    ''' <summary>
+    ''' Depth in m
+    ''' </summary>
+    ''' <returns></returns>
     <Category(catInputs)>
     <DisplayName(
     "      Depth")>
@@ -1395,7 +1412,6 @@ Public Class driftPercent
         "Buffer width in m" & vbCrLf &
         "Step03 = std. FOCUS buffer width")>
     <RefreshProperties(RefreshProperties.All)>
-    <DebuggerBrowsable(DebuggerBrowsableState.Collapsed)>
     <Browsable(True)>
     <[ReadOnly](False)>
     <DefaultValue(CInt(eBufferWidth.FOCUSStep03))>
@@ -1438,20 +1454,62 @@ Public Class driftPercent
         End Set
     End Property
 
+
+
+    ''' <summary>
+    ''' Total drift reduction compared to Step03
+    ''' "Buffer + Nozzle in percent, single appln.
+    ''' </summary>
+    ''' <returns></returns>
+    <Category(catInputs)>
+    <DisplayName(
+    "Total Reduction")>
+    <Description(
+    "Total drift reduction compared to Step03" & vbCrLf &
+    "Buffer + Nozzle in percent, single appln")>
+    <Browsable(True)>
+    <[ReadOnly](True)>
+    <TypeConverter(GetType(dblConv))>
+    <AttributeProvider(
+    "format= '0'" &
+    "|unit='" & driftPercentUnit & "'")>
+    <XmlIgnore> <ScriptIgnore>
+    <DefaultValue(Double.NaN)>
+    Public ReadOnly Property totalDriftSingle As Double
+        Get
+
+            If Double.IsNaN(step04Single) OrElse
+                   Double.IsNaN(step03Single) OrElse
+                   step03Single = 0 Then
+
+                Return Double.NaN
+
+            Else
+
+                Return 100 - (step04Single * 100 / step03Single)
+
+            End If
+
+        End Get
+    End Property
+
     ''' <summary>
     ''' Maximum allowed total reduction in %
     ''' </summary>
     ''' <returns></returns>
     <Category(catInputs)>
     <DisplayName(
-        "Max total Reduction")>
+    "Max Allowed")>
     <Description(
-        "Maximum allowed total reduction in %" & vbCrLf &
-        "")>
+    "Maximum allowed total reduction in %" & vbCrLf &
+    "")>
     <RefreshProperties(RefreshProperties.All)>
-    <DebuggerBrowsable(DebuggerBrowsableState.Collapsed)>
-    <Browsable(False)>
+    <Browsable(True)>
     <[ReadOnly](False)>
+    <TypeConverter(GetType(intConv))>
+    <AttributeProvider(
+    "format= '0" &
+    "'|unit='" & driftPercentUnit & "'")>
     <DefaultValue(95)>
     Public Property maxTotalReduction As Integer
         Get
@@ -1464,6 +1522,111 @@ Public Class driftPercent
 
         End Set
     End Property
+
+    ''' <summary>
+    ''' Max nozzle at given buffer 
+    ''' to stay within the max reduction, single appln
+    ''' </summary>
+    ''' <returns></returns>
+    <Category(catInputs)>
+    <DisplayName(
+    "Max Nozzle")>
+    <Description(
+    "Max nozzle at given buffer " & vbCrLf &
+    "to stay within the max reduction")>
+    <Browsable(True)>
+    <[ReadOnly](True)>
+    <TypeConverter(GetType(intConv))>
+    <AttributeProvider(
+    "format= '0" &
+    "'|unit='" & driftPercentUnit & "'")>
+    <XmlIgnore> <ScriptIgnore>
+    Public Property maxNozzleSingle As eNozzles
+        Get
+            Return _maxNozzleSingle
+        End Get
+        Set
+            _maxNozzleSingle = Value
+        End Set
+    End Property
+
+    ''' <summary>
+    ''' Max buffer at given nozzle 
+    ''' to stay within the max reduction, single appln
+    ''' </summary>
+    ''' <returns></returns>
+    <Category(catInputs)>
+    <DisplayName(
+    "Max Buffer")>
+    <Description(
+    "Max buffer at given nozzle " & vbCrLf &
+    "to stay within the max reduction")>
+    <Browsable(True)>
+    <[ReadOnly](True)>
+    <XmlIgnore> <ScriptIgnore>
+    Public Property maxBufferSingle As eBufferWidth
+        Get
+            Return _maxBufferSingle
+        End Get
+        Set
+            _maxBufferSingle = Value
+        End Set
+    End Property
+
+    ''' <summary>
+    ''' PEC single appln at Step04 level incl. Buffer + Nozzle
+    ''' </summary>
+    ''' <returns></returns>
+    <Category(catInputs)>
+    <DisplayName(
+    "Step 04 Single")>
+    <Description(
+    "PEC at Step04 level incl. Buffer + Nozzle" & vbCrLf &
+    "in µg/L, single appln")>
+    <Browsable(True)>
+    <[ReadOnly](True)>
+    <TypeConverter(GetType(dblConv))>
+    <AttributeProvider(
+        "format= '" & "G4" &
+        "'|unit='" & " µg/L" & "'")>
+    <XmlIgnore> <ScriptIgnore>
+    <DefaultValue(Double.NaN)>
+    Public Property step04SinglePEC As Double
+        Get
+            Return _step04SinglePEC
+        End Get
+        Set
+            _step04SinglePEC = Value
+        End Set
+    End Property
+
+    ''' <summary>
+    ''' PEC multi applns at Step04 level incl. Buffer + Nozzle
+    ''' </summary>
+    ''' <returns></returns>
+    <Category(catInputs)>
+    <DisplayName(
+    "Step 04 Multi")>
+    <Description(
+    "PEC at Step04 level incl. Buffer + Nozzle" & vbCrLf &
+    "in µg/L, multi applns")>
+    <Browsable(True)>
+    <[ReadOnly](True)>
+    <TypeConverter(GetType(dblConv))>
+    <AttributeProvider(
+    "format= '" & "G4" &
+    "'|unit='" & " µg/L" & "'")>
+    <XmlIgnore> <ScriptIgnore>
+    <DefaultValue(Double.NaN)>
+    Public Property step04MultiPEC As Double
+        Get
+            Return _step04MultiPEC
+        End Get
+        Set
+            _step04MultiPEC = Value
+        End Set
+    End Property
+
 
 #End Region
 
@@ -1543,6 +1706,12 @@ Public Class driftPercent
 
     <DebuggerBrowsable(DebuggerBrowsableState.Never)>
     Private _farthestDriftPercentMulti As Double = Double.NaN
+
+    <DebuggerBrowsable(DebuggerBrowsableState.Never)>
+    Private _maxNozzleSingle As eNozzles = eNozzles.not_defined
+
+    <DebuggerBrowsable(DebuggerBrowsableState.Never)>
+    Private _maxBufferSingle As eBufferWidth = eBufferWidth.not_defined
 
     <DebuggerBrowsable(DebuggerBrowsableState.Never)>
     Private _step04SingleSingle As Double = Double.NaN
@@ -1692,7 +1861,6 @@ Public Class driftPercent
         End Set
     End Property
 
-
     ''' <summary>
     ''' Drift at edge nearest field in %, single appln.
     ''' </summary>
@@ -1719,7 +1887,6 @@ Public Class driftPercent
             _nearestDriftPercentSingle = Value
         End Set
     End Property
-
 
     ''' <summary>
     ''' Drift at edge nearest field in %, multi applns.
@@ -1776,7 +1943,6 @@ Public Class driftPercent
         End Set
     End Property
 
-
     ''' <summary>
     ''' Drift farthest to the 
     ''' edge of the field in %, single appln.
@@ -1804,7 +1970,6 @@ Public Class driftPercent
             _farthestDriftPercentSingle = Value
         End Set
     End Property
-
 
     ''' <summary>
     ''' Drift farthest to the 
@@ -1836,9 +2001,9 @@ Public Class driftPercent
 
 #End Region
 
-    Public Const catRegressionParameters As String = "03 Regression Parameter"
+    Public Const catRegressionParameters As String = "03  Regression Parameter"
 
-#Region "   Regression Parameter"
+#Region "    Regression Parameter"
 
     <Category(catRegressionParameters)>
     <Description(
@@ -1920,22 +2085,6 @@ Public Class driftPercent
         End Set
     End Property
 
-    <Category(catSingle)>
-    <DisplayName(
-        "Step 2a")>
-    <Description(
-        "Drift at Step 2 level" & vbCrLf &
-        "in % incl. buffer, single appln.")>
-    <Browsable(False)>
-    <[ReadOnly](True)>
-    <TypeConverter(GetType(dblConv))>
-    <AttributeProvider(
-        "format= '" & driftPercentFormat &
-        "'|unit='" & driftPercentUnit & "'")>
-    <XmlIgnore> <ScriptIgnore>
-    <DefaultValue(Double.NaN)>
-    Public Property step2aSingle As Double
-
     ''' <summary>
     ''' Step03 drift for comparison
     ''' </summary>
@@ -1990,66 +2139,6 @@ Public Class driftPercent
         End Set
     End Property
 
-    ''' <summary>
-    ''' Total drift reduction compared to Step03
-    ''' "Buffer + Nozzle in percent, single appln.
-    ''' </summary>
-    ''' <returns></returns>
-    <Category(catSingle)>
-    <DisplayName(
-        "Total Reduction")>
-    <Description(
-        "Total drift reduction compared to Step03" & vbCrLf &
-        "Buffer + Nozzle in percent, single appln")>
-    <Browsable(True)>
-    <[ReadOnly](True)>
-    <TypeConverter(GetType(dblConv))>
-    <AttributeProvider(
-        "format= '0'" &
-        "|unit='" & driftPercentUnit & "'")>
-    <XmlIgnore> <ScriptIgnore>
-    <DefaultValue(Double.NaN)>
-    Public ReadOnly Property totalDriftSingle As Double
-        Get
-
-            If Double.IsNaN(step04Single) OrElse
-                   Double.IsNaN(step03Single) OrElse
-                   step03Single = 0 Then
-
-                Return Double.NaN
-
-            Else
-
-                Return 100 - (step04Single * 100 / step03Single)
-
-            End If
-
-        End Get
-    End Property
-
-
-    <Category(catSingle)>
-    <DisplayName(
-        "Max Nozzle")>
-    <Description(
-        "Max nozzle at given buffer " & vbCrLf &
-        "to stay within the max reduction, single appln")>
-    <Browsable(True)>
-    <[ReadOnly](True)>
-    <XmlIgnore> <ScriptIgnore>
-    Public Property maxNozzleSingle As eNozzles = eNozzles.not_defined
-
-    <Category(catSingle)>
-    <DisplayName(
-        "Max Buffer")>
-    <Description(
-        "Max buffer at given nozzle " & vbCrLf &
-        "to stay within the max reduction, single appln")>
-    <Browsable(True)>
-    <[ReadOnly](True)>
-    <XmlIgnore> <ScriptIgnore>
-    Public Property maxBufferSingle As eBufferWidth = eBufferWidth.not_defined
-
 #End Region
 
     Public Const catSinglePECs As String = "05         PECs "
@@ -2057,41 +2146,12 @@ Public Class driftPercent
 #Region "    PECs Single Appln"
 
     ''' <summary>
-    ''' PEC at Step 12 level
-    ''' in µg/L, single appln.
-    ''' </summary>
-    ''' <returns></returns>
-    <Category(catSinglePECs)>
-    <DisplayName(
-        "PEC Step 12")>
-    <Description(
-        "PEC at Step 12 level" & vbCrLf &
-        "in µg/L, single appln.")>
-    <Browsable(True)>
-    <[ReadOnly](True)>
-    <TypeConverter(GetType(dblConv))>
-    <AttributeProvider(
-        "format= '" & "G4" &
-        "'|unit='" & " µg/L" & "'")>
-    <XmlIgnore> <ScriptIgnore>
-    <DefaultValue(Double.NaN)>
-    Public Property step12SinglePEC As Double
-        Get
-            Return _step12SinglePEC
-        End Get
-        Set
-            _step12SinglePEC = Value
-        End Set
-    End Property
-
-
-    ''' <summary>
     ''' Step03 drift for comparison
     ''' </summary>
     ''' <returns></returns>
     <Category(catSinglePECs)>
     <DisplayName(
-        "    Step 03")>
+        "PEC Step 03")>
     <Description(
         "PEC  at Step03 level" & vbCrLf &
         "in µg/L, single appln.")>
@@ -2112,119 +2172,8 @@ Public Class driftPercent
         End Set
     End Property
 
-    ''' <summary>
-    ''' Step03 aquatic metabolite
-    ''' </summary>
-    ''' <returns></returns>
-    <Category(catSinglePECs)>
-    <DisplayName(
-        "    Step 03 Aquatic. Met")>
-    <Description(
-        "Aquatic. Met PEC at Step03 level" & vbCrLf &
-        "in µg/L, single appln.")>
-    <Browsable(True)>
-    <[ReadOnly](True)>
-    <TypeConverter(GetType(dblConv))>
-    <AttributeProvider(
-        "format= '" & "G4" &
-        "'|unit='" & " µg/L" & "'")>
-    <XmlIgnore> <ScriptIgnore>
-    <DefaultValue(Double.NaN)>
-    <RefreshProperties(RefreshProperties.All)>
-    Public ReadOnly Property step03SinglePECAquaMet As Double
-        Get
 
-            If Double.IsNaN(step03Single) OrElse Double.IsNaN(aquaMetFactor) Then
-                Return Double.NaN
-            Else
-                Return step03SinglePEC * aquaMetFactor
-            End If
-
-        End Get
-
-    End Property
-
-
-    ''' <summary>
-    ''' Step03 drift for comparison
-    ''' </summary>
-    ''' <returns></returns>
-    <Category(catSinglePECs)>
-    <DisplayName(
-        "    Step 04 Buffer + Nozzle")>
-    <Description(
-        "PEC  at Step04 level" & vbCrLf &
-        "in µg/L, single appln.")>
-    <Browsable(True)>
-    <[ReadOnly](True)>
-    <TypeConverter(GetType(dblConv))>
-    <AttributeProvider(
-        "format= '" & "G4" &
-        "'|unit='" & " µg/L" & "'")>
-    <XmlIgnore> <ScriptIgnore>
-    <DefaultValue(Double.NaN)>
-    Public Property step04SinglePEC As Double
-        Get
-            Return _step04SinglePEC
-        End Get
-        Set
-            _step04SinglePEC = Value
-        End Set
-    End Property
-
-    ''' <summary>
-    ''' Step03 drift for comparison
-    ''' </summary>
-    ''' <returns></returns>
-    <Category(catSinglePECs)>
-    <DisplayName(
-    "Loading Step 03")>
-    <Description(
-        "Mass loading per drift event" & vbCrLf &
-        "in mg/m², single appln.")>
-    <Browsable(True)>
-    <[ReadOnly](True)>
-    <TypeConverter(GetType(dblConv))>
-    <AttributeProvider(
-        "format= '" & "G4" &
-        "'|unit='" & " mg/m²" & "'")>
-    <XmlIgnore> <ScriptIgnore>
-    <DefaultValue(Double.NaN)>
-    Public Property step03SingleLoading As Double
-        Get
-            Return _step03SingleLoading
-        End Get
-        Set
-            _step03SingleLoading = Value
-        End Set
-    End Property
-
-    ''' <summary>
-    ''' Step03 drift for comparison
-    ''' </summary>
-    ''' <returns></returns>
-    <Category(catSinglePECs)>
-    <DisplayName(
-    "        Step 04")>
-    <Description(
-        "Mass loading per drift event" & vbCrLf &
-        "in mg/m², single appln.")>
-    <Browsable(True)>
-    <[ReadOnly](True)>
-    <TypeConverter(GetType(dblConv))>
-    <AttributeProvider(
-        "format= '" & "G4" &
-        "'|unit='" & " mg/m²" & "'")>
-    <XmlIgnore> <ScriptIgnore>
-    <DefaultValue(Double.NaN)>
-    Public Property step04SingleLoading As Double
-        Get
-            Return _step04SingleLoading
-        End Get
-        Set
-            _step04SingleLoading = Value
-        End Set
-    End Property
+#Region "    std. distances 5, 10 ,15 and 20m"
 
     ''' <summary>
     ''' Step 04 single, 05m
@@ -2305,7 +2254,124 @@ Public Class driftPercent
 #End Region
 
 
-    Public Const catMulti As String = "06  Multi Drift %"
+    ''' <summary>
+    ''' PEC at Step 12 level
+    ''' in µg/L, single appln.
+    ''' </summary>
+    ''' <returns></returns>
+    <Category(catSinglePECs)>
+    <DisplayName(
+        "PEC Step 12")>
+    <Description(
+        "PEC at Step 12 level" & vbCrLf &
+        "in µg/L, single appln.")>
+    <Browsable(True)>
+    <[ReadOnly](True)>
+    <TypeConverter(GetType(dblConv))>
+    <AttributeProvider(
+        "format= '" & "G4" &
+        "'|unit='" & " µg/L" & "'")>
+    <XmlIgnore> <ScriptIgnore>
+    <DefaultValue(Double.NaN)>
+    Public Property step12SinglePEC As Double
+        Get
+            Return _step12SinglePEC
+        End Get
+        Set
+            _step12SinglePEC = Value
+        End Set
+    End Property
+
+
+    ''' <summary>
+    ''' Step03 aquatic metabolite
+    ''' </summary>
+    ''' <returns></returns>
+    <Category(catSinglePECs)>
+    <DisplayName(
+        "    Step 03 Aquatic. Met")>
+    <Description(
+        "Aquatic. Met PEC at Step03 level" & vbCrLf &
+        "in µg/L, single appln.")>
+    <Browsable(True)>
+    <[ReadOnly](True)>
+    <TypeConverter(GetType(dblConv))>
+    <AttributeProvider(
+        "format= '" & "G4" &
+        "'|unit='" & " µg/L" & "'")>
+    <XmlIgnore> <ScriptIgnore>
+    <DefaultValue(Double.NaN)>
+    <RefreshProperties(RefreshProperties.All)>
+    Public ReadOnly Property step03SinglePECAquaMet As Double
+        Get
+
+            If Double.IsNaN(step03Single) OrElse Double.IsNaN(aquaMetFactor) Then
+                Return Double.NaN
+            Else
+                Return step03SinglePEC * aquaMetFactor
+            End If
+
+        End Get
+
+    End Property
+
+    ''' <summary>
+    ''' Step03 drift for comparison
+    ''' </summary>
+    ''' <returns></returns>
+    <Category(catSinglePECs)>
+    <DisplayName(
+    "Loading Step 03")>
+    <Description(
+        "Mass loading per drift event" & vbCrLf &
+        "in mg/m², single appln.")>
+    <Browsable(True)>
+    <[ReadOnly](True)>
+    <TypeConverter(GetType(dblConv))>
+    <AttributeProvider(
+        "format= '" & "G4" &
+        "'|unit='" & " mg/m²" & "'")>
+    <XmlIgnore> <ScriptIgnore>
+    <DefaultValue(Double.NaN)>
+    Public Property step03SingleLoading As Double
+        Get
+            Return _step03SingleLoading
+        End Get
+        Set
+            _step03SingleLoading = Value
+        End Set
+    End Property
+
+    ''' <summary>
+    ''' Step03 drift for comparison
+    ''' </summary>
+    ''' <returns></returns>
+    <Category(catSinglePECs)>
+    <DisplayName(
+    "        Step 04")>
+    <Description(
+        "Mass loading per drift event" & vbCrLf &
+        "in mg/m², single appln.")>
+    <Browsable(True)>
+    <[ReadOnly](True)>
+    <TypeConverter(GetType(dblConv))>
+    <AttributeProvider(
+        "format= '" & "G4" &
+        "'|unit='" & " mg/m²" & "'")>
+    <XmlIgnore> <ScriptIgnore>
+    <DefaultValue(Double.NaN)>
+    Public Property step04SingleLoading As Double
+        Get
+            Return _step04SingleLoading
+        End Get
+        Set
+            _step04SingleLoading = Value
+        End Set
+    End Property
+
+#End Region
+
+    Public Const catMulti As String = "06  Multi  Drift %"
 
 #Region "    Drift % Multi Applns"
 
@@ -2361,16 +2427,16 @@ Public Class driftPercent
     ''' <returns></returns>
     <Category(catMulti)>
     <DisplayName(
-        "Step 03")>
+    "Step 03")>
     <Description(
-        "Step03 drift value for comparison" & vbCrLf &
-        "in %, multi applns.")>
+    "Step03 drift value for comparison" & vbCrLf &
+    "in %, multi applns.")>
     <Browsable(True)>
     <[ReadOnly](True)>
     <TypeConverter(GetType(dblConv))>
     <AttributeProvider(
-        "format= '" & driftPercentFormat &
-        "'|unit='" & driftPercentUnit & "'")>
+    "format= '" & driftPercentFormat &
+    "'|unit='" & driftPercentUnit & "'")>
     <XmlIgnore> <ScriptIgnore>
     <DefaultValue(Double.NaN)>
     Public Property step03Multi As Double
@@ -2382,23 +2448,22 @@ Public Class driftPercent
         End Set
     End Property
 
-
     ''' <summary>
     ''' Areic mean drift in %
     ''' </summary>
     ''' <returns></returns>
     <Category(catMulti)>
     <DisplayName(
-        "Step 04")>
+    "Step 04")>
     <Description(
-        "Areic mean drift" & vbCrLf &
-        "in %, multi applns.")>
+    "Areic mean drift" & vbCrLf &
+    "in %, multi applns.")>
     <Browsable(True)>
     <[ReadOnly](True)>
     <TypeConverter(GetType(dblConv))>
     <AttributeProvider(
-        "format= '" & driftPercentFormat &
-        "'|unit='" & driftPercentUnit & "'")>
+    "format= '" & driftPercentFormat &
+    "'|unit='" & driftPercentUnit & "'")>
     <XmlIgnore> <ScriptIgnore>
     <DefaultValue(Double.NaN)>
     Public Property step04Multi As Double
@@ -2410,8 +2475,6 @@ Public Class driftPercent
         End Set
     End Property
 
-
-
     ''' <summary>
     ''' Total drift reduction compared to Step03
     ''' Buffer + Nozzle in percent, multi applns.
@@ -2419,16 +2482,16 @@ Public Class driftPercent
     ''' <returns></returns>
     <Category(catMulti)>
     <DisplayName(
-            "Total Reduction")>
+    "Total Reduction")>
     <Description(
-            "Total drift reduction compared to Step03 " & vbCrLf &
-            "Buffer + Nozzle in percent, multi applns.")>
-    <Browsable(True)>
+    "Total drift reduction compared to Step03 " & vbCrLf &
+    "Buffer + Nozzle in percent, multi applns.")>
+    <Browsable(False)>
     <[ReadOnly](True)>
     <TypeConverter(GetType(dblConv))>
     <AttributeProvider(
-            "format= '0'" &
-            "|unit='" & driftPercentUnit & "'")>
+    "format= '0'" &
+    "|unit='" & driftPercentUnit & "'")>
     <XmlIgnore> <ScriptIgnore>
     <DefaultValue(Double.NaN)>
     Public ReadOnly Property totalDriftMulti As Double
@@ -2460,7 +2523,7 @@ Public Class driftPercent
     <Description(
             "Max nozzle at given buffer " & vbCrLf &
             "to stay within the max reduction, multi applns.")>
-    <Browsable(True)>
+    <Browsable(False)>
     <[ReadOnly](True)>
     <XmlIgnore> <ScriptIgnore>
     Public Property maxNozzleMulti As eNozzles = eNozzles.not_defined
@@ -2471,7 +2534,7 @@ Public Class driftPercent
     <Description(
             "Max buffer at given nozzle " & vbCrLf &
             "to stay within the max reduction, multi applns.")>
-    <Browsable(True)>
+    <Browsable(False)>
     <[ReadOnly](True)>
     <XmlIgnore> <ScriptIgnore>
     Public Property maxBufferMulti As eBufferWidth = eBufferWidth.not_defined
@@ -2479,40 +2542,9 @@ Public Class driftPercent
 
 #End Region
 
-
     Public Const catMultiPECs As String = "07         PECs"
 
 #Region "    PECs Multi Applns"
-
-
-    ''' <summary>
-    ''' PEC at Step 12 level
-    ''' in µg/L, multi appln.
-    ''' </summary>
-    ''' <returns></returns>
-    <Category(catMultiPECs)>
-    <DisplayName(
-        "PEC Step 12")>
-    <Description(
-        "PEC at Step 12 level" & vbCrLf &
-        "in mg/L, Multi appln.")>
-    <Browsable(True)>
-    <[ReadOnly](True)>
-    <TypeConverter(GetType(dblConv))>
-    <AttributeProvider(
-        "format= '" & "G4" &
-        "'|unit='" & " µg/L" & "'")>
-    <XmlIgnore> <ScriptIgnore>
-    <DefaultValue(Double.NaN)>
-    Public Property step12MultiPEC As Double
-        Get
-            Return _step12MultiPEC
-        End Get
-        Set
-            _step12MultiPEC = Value
-        End Set
-    End Property
-
 
     ''' <summary>
     ''' Step03 drift for comparison
@@ -2520,9 +2552,9 @@ Public Class driftPercent
     ''' <returns></returns>
     <Category(catMultiPECs)>
     <DisplayName(
-        "    Step 03")>
+        "PEC Step 03")>
     <Description(
-        "PEC  at Step03 level" & vbCrLf &
+        "PEC at Step03 level" & vbCrLf &
         "in µg/L, multi appln.")>
     <Browsable(True)>
     <[ReadOnly](True)>
@@ -2542,118 +2574,7 @@ Public Class driftPercent
     End Property
 
 
-    ''' <summary>
-    ''' Step03 drift for comparison
-    ''' </summary>
-    ''' <returns></returns>
-    <Category(catMultiPECs)>
-    <DisplayName(
-        "    Step 03 Aquatic. Met")>
-    <Description(
-        "Aquatic. Met PEC at Step03 level" & vbCrLf &
-        "in µg/L, multi appln.")>
-    <Browsable(True)>
-    <[ReadOnly](True)>
-    <TypeConverter(GetType(dblConv))>
-    <AttributeProvider(
-        "format= '" & "G4" &
-        "'|unit='" & " µg/L" & "'")>
-    <XmlIgnore> <ScriptIgnore>
-    <DefaultValue(Double.NaN)>
-    Public ReadOnly Property step03MultiPECAquaMet As Double
-        Get
-
-            If Double.IsNaN(step03Multi) OrElse Double.IsNaN(aquaMetFactor) Then
-                Return Double.NaN
-            Else
-                Return step03MultiPEC * aquaMetFactor
-            End If
-
-
-            Return _step03MultiPEC
-        End Get
-    End Property
-
-    ''' <summary>
-    ''' Step03 drift for comparison
-    ''' </summary>
-    ''' <returns></returns>
-    <Category(catMultiPECs)>
-    <DisplayName(
-        "    Step 04 Buffer + Nozzle")>
-    <Description(
-        "PEC  at Step04 level" & vbCrLf &
-        "in µg/L, multi appln.")>
-    <Browsable(True)>
-    <[ReadOnly](True)>
-    <TypeConverter(GetType(dblConv))>
-    <AttributeProvider(
-        "format= '" & "G4" &
-        "'|unit='" & " µg/L" & "'")>
-    <XmlIgnore> <ScriptIgnore>
-    <DefaultValue(Double.NaN)>
-    Public Property step04MultiPEC As Double
-        Get
-            Return _step04MultiPEC
-        End Get
-        Set
-            _step04MultiPEC = Value
-        End Set
-    End Property
-
-    ''' <summary>
-    ''' Step03 drift for comparison
-    ''' </summary>
-    ''' <returns></returns>
-    <Category(catMultiPECs)>
-    <DisplayName(
-    "Loading Step 03")>
-    <Description(
-        "Mass loading per drift event" & vbCrLf &
-        "in mg/m², multi appln.")>
-    <Browsable(True)>
-    <[ReadOnly](True)>
-    <TypeConverter(GetType(dblConv))>
-    <AttributeProvider(
-        "format= '" & "G4" &
-        "'|unit='" & " mg/m²" & "'")>
-    <XmlIgnore> <ScriptIgnore>
-    <DefaultValue(Double.NaN)>
-    Public Property step03MultiLoading As Double
-        Get
-            Return _step03MultiLoading
-        End Get
-        Set
-            _step03MultiLoading = Value
-        End Set
-    End Property
-
-    ''' <summary>
-    ''' Step04 drift for comparison
-    ''' </summary>
-    ''' <returns></returns>
-    <Category(catMultiPECs)>
-    <DisplayName(
-    "        Step 04")>
-    <Description(
-        "Mass loading per drift event" & vbCrLf &
-        "in mg/m², multi appln.")>
-    <Browsable(True)>
-    <[ReadOnly](True)>
-    <TypeConverter(GetType(dblConv))>
-    <AttributeProvider(
-        "format= '" & "G4" &
-        "'|unit='" & " mg/m²" & "'")>
-    <XmlIgnore> <ScriptIgnore>
-    <DefaultValue(Double.NaN)>
-    Public Property step04MultiLoading As Double
-        Get
-            Return _step04MultiLoading
-        End Get
-        Set
-            _step04MultiLoading = Value
-        End Set
-    End Property
+#Region "    std. distances 5, 10 ,15 and 20m"
 
     ''' <summary>
     ''' Step 04 multi, 05m
@@ -2730,6 +2651,125 @@ Public Class driftPercent
         "'|unit='" & " µg/L" & "'")>
     <DefaultValue(Double.NaN)>
     Public Property step04_20mMulti As Double = Double.NaN
+
+#End Region
+
+
+    ''' <summary>
+    ''' PEC at Step 12 level
+    ''' in µg/L, multi appln.
+    ''' </summary>
+    ''' <returns></returns>
+    <Category(catMultiPECs)>
+    <DisplayName(
+        "PEC Step 12")>
+    <Description(
+        "PEC at Step 12 level" & vbCrLf &
+        "in mg/L, Multi appln.")>
+    <Browsable(True)>
+    <[ReadOnly](True)>
+    <TypeConverter(GetType(dblConv))>
+    <AttributeProvider(
+        "format= '" & "G4" &
+        "'|unit='" & " µg/L" & "'")>
+    <XmlIgnore> <ScriptIgnore>
+    <DefaultValue(Double.NaN)>
+    Public Property step12MultiPEC As Double
+        Get
+            Return _step12MultiPEC
+        End Get
+        Set
+            _step12MultiPEC = Value
+        End Set
+    End Property
+
+
+    ''' <summary>
+    ''' Step03 drift for comparison
+    ''' </summary>
+    ''' <returns></returns>
+    <Category(catMultiPECs)>
+    <DisplayName(
+        "    Step 03 Aquatic. Met")>
+    <Description(
+        "Aquatic. Met PEC at Step03 level" & vbCrLf &
+        "in µg/L, multi appln.")>
+    <Browsable(True)>
+    <[ReadOnly](True)>
+    <TypeConverter(GetType(dblConv))>
+    <AttributeProvider(
+        "format= '" & "G4" &
+        "'|unit='" & " µg/L" & "'")>
+    <XmlIgnore> <ScriptIgnore>
+    <DefaultValue(Double.NaN)>
+    Public ReadOnly Property step03MultiPECAquaMet As Double
+        Get
+
+            If Double.IsNaN(step03Multi) OrElse Double.IsNaN(aquaMetFactor) Then
+                Return Double.NaN
+            Else
+                Return step03MultiPEC * aquaMetFactor
+            End If
+
+
+            Return _step03MultiPEC
+        End Get
+    End Property
+
+
+    ''' <summary>
+    ''' Step03 drift for comparison
+    ''' </summary>
+    ''' <returns></returns>
+    <Category(catMultiPECs)>
+    <DisplayName(
+    "Loading Step 03")>
+    <Description(
+        "Mass loading per drift event" & vbCrLf &
+        "in mg/m², multi appln.")>
+    <Browsable(True)>
+    <[ReadOnly](True)>
+    <TypeConverter(GetType(dblConv))>
+    <AttributeProvider(
+        "format= '" & "G4" &
+        "'|unit='" & " mg/m²" & "'")>
+    <XmlIgnore> <ScriptIgnore>
+    <DefaultValue(Double.NaN)>
+    Public Property step03MultiLoading As Double
+        Get
+            Return _step03MultiLoading
+        End Get
+        Set
+            _step03MultiLoading = Value
+        End Set
+    End Property
+
+    ''' <summary>
+    ''' Step04 drift for comparison
+    ''' </summary>
+    ''' <returns></returns>
+    <Category(catMultiPECs)>
+    <DisplayName(
+    "        Step 04")>
+    <Description(
+        "Mass loading per drift event" & vbCrLf &
+        "in mg/m², multi appln.")>
+    <Browsable(True)>
+    <[ReadOnly](True)>
+    <TypeConverter(GetType(dblConv))>
+    <AttributeProvider(
+        "format= '" & "G4" &
+        "'|unit='" & " mg/m²" & "'")>
+    <XmlIgnore> <ScriptIgnore>
+    <DefaultValue(Double.NaN)>
+    Public Property step04MultiLoading As Double
+        Get
+            Return _step04MultiLoading
+        End Get
+        Set
+            _step04MultiLoading = Value
+        End Set
+    End Property
 
 #End Region
 
@@ -3508,19 +3548,19 @@ Public Module FOCUSdriftDB
         <Description(enumConverter(Of Type).not_defined)>
         not_defined = -1
 
-        <Description("Step03")>
+        <Description("Step03, no add. buffer")>
         FOCUSStep03 = 0
 
-        <Description(" 1")>
+        <Description(" 1 ( < FOCUS std. buffer? )")>
         _01 = 1
 
-        <Description(" 2")>
+        <Description(" 2 ( < FOCUS std. buffer? )")>
         _02 = 2
 
-        <Description(" 3")>
+        <Description(" 3 ( < FOCUS std. buffer? )")>
         _03 = 3
 
-        <Description(" 4")>
+        <Description(" 4 ( < FOCUS std. buffer? )")>
         _04 = 4
 
         <Description(" 5")>
@@ -3576,6 +3616,10 @@ Public Module FOCUSdriftDB
 
     End Enum
 
+
+    ''' <summary>
+    ''' appln method 
+    ''' </summary>
     <TypeConverter(GetType(enumConverter(Of eApplnMethodStep03)))>
     Public Enum eApplnMethodStep03
 
@@ -3650,10 +3694,16 @@ Public Module FOCUSdriftDB
         <Description(enumConverter(Of Type).not_defined)>
         not_defined = -1
 
-        <Description("early/harvest appln BBCH 1-71 / 96-99")>
+        ''' <summary>
+        ''' early/harvest appln BBCH 1-71 / 96-99, 23.6%
+        ''' </summary>
+        <Description("early: BBCH 1-71 / 96-99, 23.6%")>
         early
 
-        <Description("late appln BBCH 72-95")>
+        ''' <summary>
+        ''' late appln BBCH 72-95, 11.1%
+        ''' </summary>
+        <Description("late: BBCH 72-95, 11.1%")>
         late
 
     End Enum
@@ -3665,7 +3715,6 @@ Public Module FOCUSdriftDB
     Public Sub recalc(ByRef driftPercent As driftPercent)
 
         Dim herbicideUse As Boolean = False
-        Dim earlyLate As eEarlyLate = eEarlyLate.not_defined
         Dim dummyFOCUSswDriftCrop As eFOCUSswDriftCrop = eFOCUSswDriftCrop.not_defined
 
         With driftPercent
@@ -3742,9 +3791,9 @@ Public Module FOCUSdriftDB
                         FOCUSswWaterBody:= .FOCUSswWaterBody,
                            driftDistance:=eDriftDistance.closest,
                              bufferWidth:= .bufferWidth,
-                                  Nozzle:= .nozzle,
+                                  nozzle:= .nozzle,
                                   herbicideUse:=herbicideUse,
-                                  earlyLate:=earlyLate)
+                                  earlyLate:= .earlyLate)
 
                 .farthestDriftPercentSingle = calcDriftPercent(
                               noOfApplns:=eNoOfApplns.one,
@@ -3752,9 +3801,9 @@ Public Module FOCUSdriftDB
                         FOCUSswWaterBody:= .FOCUSswWaterBody,
                            driftDistance:=eDriftDistance.farthest,
                              bufferWidth:= .bufferWidth,
-                                  Nozzle:= .nozzle,
+                                  nozzle:= .nozzle,
                                   herbicideUse:=herbicideUse,
-                                  earlyLate:=earlyLate)
+                                  earlyLate:= .earlyLate)
 
                 .step03Single = calcDriftPercent(
                               noOfApplns:=eNoOfApplns.one,
@@ -3762,9 +3811,9 @@ Public Module FOCUSdriftDB
                         FOCUSswWaterBody:= .FOCUSswWaterBody,
                            driftDistance:=eDriftDistance.average,
                              bufferWidth:=eBufferWidth.FOCUSStep03,
-                                  Nozzle:=eNozzles._0,
+                                  nozzle:=eNozzles._0,
                                   herbicideUse:=herbicideUse,
-                                  earlyLate:=earlyLate)
+                                  earlyLate:= .earlyLate)
 
                 .step04Single = calcDriftPercent(
                             noOfApplns:=eNoOfApplns.one,
@@ -3772,9 +3821,9 @@ Public Module FOCUSdriftDB
                     FOCUSswWaterBody:= .FOCUSswWaterBody,
                         driftDistance:=eDriftDistance.average,
                         bufferWidth:= .bufferWidth,
-                                Nozzle:= .nozzle,
+                                nozzle:= .nozzle,
                                 herbicideUse:=herbicideUse,
-                                earlyLate:=earlyLate)
+                                earlyLate:= .earlyLate)
 
 
                 If .noOfApplns > eNoOfApplns.one Then
@@ -3794,9 +3843,9 @@ Public Module FOCUSdriftDB
                                                 FOCUSswWaterBody:= .FOCUSswWaterBody,
                                                    driftDistance:=eDriftDistance.closest,
                                                      bufferWidth:= .bufferWidth,
-                                                          Nozzle:= .nozzle,
+                                                          nozzle:= .nozzle,
                                       herbicideUse:=herbicideUse,
-                                      earlyLate:=earlyLate)
+                                      earlyLate:= .earlyLate)
 
 
                         .farthestDriftPercentMulti = calcDriftPercent(
@@ -3805,9 +3854,9 @@ Public Module FOCUSdriftDB
                                                 FOCUSswWaterBody:= .FOCUSswWaterBody,
                                                    driftDistance:=eDriftDistance.farthest,
                                                      bufferWidth:= .bufferWidth,
-                                                          Nozzle:= .nozzle,
+                                                          nozzle:= .nozzle,
                                       herbicideUse:=herbicideUse,
-                                      earlyLate:=earlyLate)
+                                      earlyLate:= .earlyLate)
 
 
                         .step03Multi = calcDriftPercent(
@@ -3816,9 +3865,9 @@ Public Module FOCUSdriftDB
                             FOCUSswWaterBody:= .FOCUSswWaterBody,
                                driftDistance:=eDriftDistance.average,
                                  bufferWidth:=eBufferWidth.FOCUSStep03,
-                                      Nozzle:=eNozzles._0,
+                                      nozzle:=eNozzles._0,
                                       herbicideUse:=herbicideUse,
-                                      earlyLate:=earlyLate)
+                                      earlyLate:= .earlyLate)
 
                         .step04Multi = calcDriftPercent(
                                             noOfApplns:= .noOfApplns,
@@ -3826,9 +3875,9 @@ Public Module FOCUSdriftDB
                                     FOCUSswWaterBody:= .FOCUSswWaterBody,
                                         driftDistance:=eDriftDistance.average,
                                         bufferWidth:= .bufferWidth,
-                                                Nozzle:= .nozzle,
+                                                nozzle:= .nozzle,
                             herbicideUse:=herbicideUse,
-                            earlyLate:=earlyLate)
+                            earlyLate:= .earlyLate)
 
 
 
@@ -3897,6 +3946,9 @@ Public Module FOCUSdriftDB
     ''' <param name="FOCUSswWaterBody">
     ''' Ditch, pond or stream, as enum
     ''' </param>
+    ''' <param name="nozzle">
+    ''' Drift red. nozzle as percent 0 - 100
+    ''' </param>   
     ''' <param name="bufferWidth">
     ''' Buffer width in m, -1 = FOCUS std. width
     ''' </param>
@@ -3904,20 +3956,29 @@ Public Module FOCUSdriftDB
     ''' Nearest, farthest or average distance 
     ''' std. = average
     ''' </param>
+    ''' <param name="herbicideUse">
+    ''' use Ganzelmeier 'Arable Crops' 
+    ''' and ignore 'FOCUSswDriftCrop'
+    ''' </param>
+    ''' <param name="earlyLate">
+    ''' if crop  = 'PF Pome Fruit' select early or late use
+    ''' early/harvest appln BBCH 1-71 / 96-99
+    ''' late appln BBCH 72-95
+    ''' </param>
     ''' <returns>
     ''' FOCUS drift in percent as double
     ''' </returns>
     ''' <remarks></remarks>
     <DebuggerStepThrough>
     Public Function calcDriftPercent(
-                                        noOfApplns As eNoOfApplns,
-                                        FOCUSswDriftCrop As eFOCUSswDriftCrop,
-                                        FOCUSswWaterBody As eFOCUSswWaterBody,
-                               Optional Nozzle As eNozzles = eNozzles._0,
-                               Optional bufferWidth As Integer = eBufferWidth.FOCUSStep03,
-                               Optional driftDistance As eDriftDistance = eDriftDistance.average,
-                               Optional herbicideUse As Boolean = False,
-                               Optional earlyLate As eEarlyLate = eEarlyLate.not_defined) As Double
+                            noOfApplns As eNoOfApplns,
+                            FOCUSswDriftCrop As eFOCUSswDriftCrop,
+                            FOCUSswWaterBody As eFOCUSswWaterBody,
+                   Optional nozzle As Integer = eNozzles._0,
+                   Optional bufferWidth As Integer = eBufferWidth.FOCUSStep03,
+                   Optional driftDistance As eDriftDistance = eDriftDistance.average,
+                   Optional herbicideUse As Boolean = False,
+                   Optional earlyLate As eEarlyLate = eEarlyLate.not_defined) As Double
 
         'check inputs
         If noOfApplns = eNoOfApplns.not_defined OrElse
@@ -3928,13 +3989,12 @@ Public Module FOCUSdriftDB
 
         End If
 
-        If Nozzle = eNozzles.not_defined Then
-            Nozzle = eNozzles._0
+        If nozzle = CInt(eNozzles.not_defined) Then
+            nozzle = eNozzles._0
         End If
 
-
         'drift for output
-        Dim drift As Double = Double.NaN
+        Dim driftPercent As Double = Double.NaN
 
         'Application
         Dim Ganzelmeier As eGanzelmeier
@@ -3960,8 +4020,6 @@ Public Module FOCUSdriftDB
         step03stdBuffer = checkStep03StdBuffer(bufferWidth:=bufferWidth)
 
         'get Ganzelmeier crop group
-
-
         Select Case FOCUSswDriftCrop
 
             Case eFOCUSswDriftCrop.PF
@@ -3976,6 +4034,7 @@ Public Module FOCUSdriftDB
                 End If
 
             Case eFOCUSswDriftCrop.VI,
+                 eFOCUSswDriftCrop.VT,
                  eFOCUSswDriftCrop.HP,
                  eFOCUSswDriftCrop.OL,
                  eFOCUSswDriftCrop.CI
@@ -4019,7 +4078,6 @@ Public Module FOCUSdriftDB
             topBank2edgeWaterbody = bufferWidth
         End If
 
-
         'distance limit for each regression in m, hinge point
         hingePoint = hingePointDB(Ganzelmeier, noOfApplns)
 
@@ -4045,18 +4103,15 @@ Public Module FOCUSdriftDB
         End If
 
         'get regression parameter
-        A = regressionA(Ganzelmeier,
-                            noOfApplns)
+        A = regressionA(Ganzelmeier, noOfApplns)
 
-        B = regressionB(Ganzelmeier,
-                            noOfApplns)
+        B = regressionB(Ganzelmeier, noOfApplns)
 
-        C = regressionC(Ganzelmeier,
-                            noOfApplns)
+        C = regressionC(Ganzelmeier, noOfApplns)
 
-        D = regressionD(Ganzelmeier,
-                            noOfApplns)
+        D = regressionD(Ganzelmeier, noOfApplns)
 
+        'drift distances farthest, closest or average
         Select Case driftDistance
 
             Case eDriftDistance.farthest
@@ -4064,9 +4119,9 @@ Public Module FOCUSdriftDB
                 Try
 
                     If farthest2EdgeOfField < hingePoint Then
-                        drift = A * (farthest2EdgeOfField ^ B)
+                        driftPercent = A * (farthest2EdgeOfField ^ B)
                     Else
-                        drift = C * (farthest2EdgeOfField ^ D)
+                        driftPercent = C * (farthest2EdgeOfField ^ D)
                     End If
 
                 Catch ex As Exception
@@ -4083,9 +4138,9 @@ Public Module FOCUSdriftDB
                 Try
 
                     If closest2EdgeOfField < hingePoint Then
-                        drift = A * (closest2EdgeOfField ^ B)
+                        driftPercent = A * (closest2EdgeOfField ^ B)
                     Else
-                        drift = C * (closest2EdgeOfField ^ D)
+                        driftPercent = C * (closest2EdgeOfField ^ D)
                     End If
 
                 Catch ex As Exception
@@ -4102,14 +4157,14 @@ Public Module FOCUSdriftDB
                 Try
 
                     If farthest2EdgeOfField < hingePoint Then
-                        drift = (A / (B + 1) * (farthest2EdgeOfField ^ (B + 1) - closest2EdgeOfField ^ (B + 1))) /
-                                              (farthest2EdgeOfField - closest2EdgeOfField)
+                        driftPercent = (A / (B + 1) * (farthest2EdgeOfField ^ (B + 1) - closest2EdgeOfField ^ (B + 1))) /
+                                               (farthest2EdgeOfField - closest2EdgeOfField)
                     ElseIf closest2EdgeOfField > hingePoint Then
-                        drift = C / (D + 1) * (farthest2EdgeOfField ^ (D + 1) - closest2EdgeOfField ^ (D + 1)) /
+                        driftPercent = C / (D + 1) * (farthest2EdgeOfField ^ (D + 1) - closest2EdgeOfField ^ (D + 1)) /
                                               (farthest2EdgeOfField - closest2EdgeOfField)
                     Else
-                        drift = (A / (B + 1) * (hingePoint ^ (B + 1) - closest2EdgeOfField ^ (B + 1)) + C / (D + 1) * (farthest2EdgeOfField ^ (D + 1) - hingePoint ^ (D + 1))) * 1 /
-                                              (farthest2EdgeOfField - closest2EdgeOfField)
+                        driftPercent = (A / (B + 1) * (hingePoint ^ (B + 1) - closest2EdgeOfField ^ (B + 1)) + C / (D + 1) * (farthest2EdgeOfField ^ (D + 1) - hingePoint ^ (D + 1))) * 1 /
+                                               (farthest2EdgeOfField - closest2EdgeOfField)
                     End If
 
                 Catch ex As Exception
@@ -4124,20 +4179,20 @@ Public Module FOCUSdriftDB
         End Select
 
         ' if stream then apply upstream catchment factor 1.2
-        drift *= WaterBodyDB(FOCUSswWaterBody, eWBMember.Factor)
+        driftPercent *= WaterBodyDB(FOCUSswWaterBody, eWBMember.Factor)
 
         'drift reducing nozzles?     
-        drift *= (1 - Nozzle / 100)
+        driftPercent *= 1 - nozzle / 100
 
-        Return drift
+        Return driftPercent
 
     End Function
 
 
-    Public Function calcStep12(
-                                  noOfApplns As eNoOfApplns,
-                                  FOCUSswDriftCrop As eFOCUSswDriftCrop,
-                         Optional bufferWidth As eBufferWidth = eBufferWidth.not_defined) As Double
+    Public Function calcDriftPercentStep12(
+                        noOfApplns As eNoOfApplns,
+                        FOCUSswDriftCrop As eFOCUSswDriftCrop,
+               Optional bufferWidth As Integer = eBufferWidth.not_defined) As Double
 
         If noOfApplns = eNoOfApplns.not_defined OrElse
                     FOCUSswDriftCrop = eFOCUSswDriftCrop.not_defined Then
@@ -4145,7 +4200,7 @@ Public Module FOCUSdriftDB
 
         End If
 
-        Dim buffer As eBufferWidth
+        Dim buffer As Integer
 
         Select Case FOCUSswDriftCrop
 
@@ -4178,23 +4233,22 @@ Public Module FOCUSdriftDB
         End Select
 
         If bufferWidth <> eBufferWidth.not_defined AndAlso
-               bufferWidth <> eBufferWidth.FOCUSStep03 Then
+           bufferWidth <> eBufferWidth.FOCUSStep03 Then
 
             buffer = bufferWidth
 
         End If
 
-        Dim out As Double
+        Dim driftPercent As Double
 
-        out = calcDriftPercent(
+        driftPercent = calcDriftPercent(
                 noOfApplns:=noOfApplns,
                 FOCUSswDriftCrop:=FOCUSswDriftCrop,
                 FOCUSswWaterBody:=eFOCUSswWaterBody.ditch,
                 bufferWidth:=buffer,
                 driftDistance:=eDriftDistance.closest)
 
-        Return out
-
+        Return driftPercent
 
     End Function
 
@@ -4245,7 +4299,7 @@ Public Module FOCUSdriftDB
                     bufferWidth:=bufferWidth)
 
 
-            temp = 100 - (nozzleDrift * 100 / base)
+            temp = Math.Round(100 - (nozzleDrift * 100 / base), digits:=0)
 
             If temp >= maxReduction Then
                 Return nozzles(counter - 1)
@@ -4302,7 +4356,7 @@ Public Module FOCUSdriftDB
                     bufferWidth:=buffers(counter))
 
 
-            temp = 100 - (bufferDrift * 100 / base)
+            temp = Math.Round(100 - (bufferDrift * 100 / base), digits:=0)
 
             If temp >= maxReduction Then
                 Return buffers(counter - 1)
