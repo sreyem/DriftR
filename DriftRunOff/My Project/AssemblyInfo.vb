@@ -8,17 +8,17 @@ Imports System.Runtime.InteropServices
 
 ' Werte der Assemblyattribute überprüfen
 
-<Assembly: AssemblyTitle("DriftR")>
+<Assembly: AssemblyTitle("DriftRunOff")>
 <Assembly: AssemblyDescription("")>
 <Assembly: AssemblyCompany("")>
-<Assembly: AssemblyProduct("DriftR")>
-<Assembly: AssemblyCopyright("Copyright ©  2021")>
+<Assembly: AssemblyProduct("DriftRunOff")>
+<Assembly: AssemblyCopyright("Copyright ©  2022")>
 <Assembly: AssemblyTrademark("")>
 
 <Assembly: ComVisible(False)>
 
 'Die folgende GUID wird für die typelib-ID verwendet, wenn dieses Projekt für COM verfügbar gemacht wird.
-<Assembly: Guid("e79fa89f-bbc3-4d74-9a7e-e50a9fa84d2e")>
+<Assembly: Guid("cd6ad025-f49f-40e7-b495-eb794bec9d09")>
 
 ' Versionsinformationen für eine Assembly bestehen aus den folgenden vier Werten:
 '
@@ -31,5 +31,5 @@ Imports System.Runtime.InteropServices
 ' indem Sie "*" wie unten gezeigt eingeben:
 ' <Assembly: AssemblyVersion("1.0.*")>
 
-<Assembly: AssemblyVersion("1.2021.0924.2")>
-<Assembly: AssemblyFileVersion("1.2021.0924.2")>
+<Assembly: AssemblyVersion("1.0.0.0")>
+<Assembly: AssemblyFileVersion("1.0.0.0")>

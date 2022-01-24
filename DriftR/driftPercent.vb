@@ -438,12 +438,12 @@ Public Class driftPercent
         Set
 
             Select Case Value
-                Case eFOCUSswDriftCrop.PF,
+                Case eFOCUSswDriftCrop.PFE, eFOCUSswDriftCrop.PFL,
                           eFOCUSswDriftCrop.OL,
                           eFOCUSswDriftCrop.CI,
                           eFOCUSswDriftCrop.VI,
                           eFOCUSswDriftCrop.HP,
-                          eFOCUSswDriftCrop.VT
+                          eFOCUSswDriftCrop.VIL
                     _applnMethodStep03 = eApplnMethodStep03.airBlast
 
                 Case Else
@@ -478,7 +478,7 @@ Public Class driftPercent
         End Get
         Set
 
-            If _FOCUSswDriftCrop <> eFOCUSswDriftCrop.PF Then
+            If _FOCUSswDriftCrop <> eFOCUSswDriftCrop.PFE OrElse _FOCUSswDriftCrop <> eFOCUSswDriftCrop.PFL Then
                 _earlyLate = eEarlyLate.not_defined
             Else
                 _earlyLate = Value
@@ -641,12 +641,13 @@ Public Class driftPercent
 
                 Case eApplnMethodStep03.soilIncorp
 
-                    If _FOCUSswDriftCrop = eFOCUSswDriftCrop.PF OrElse
+                    If _FOCUSswDriftCrop = eFOCUSswDriftCrop.PFE OrElse
+                            _FOCUSswDriftCrop = eFOCUSswDriftCrop.PFL OrElse
                         _FOCUSswDriftCrop = eFOCUSswDriftCrop.OL OrElse
                         _FOCUSswDriftCrop = eFOCUSswDriftCrop.CI OrElse
                         _FOCUSswDriftCrop = eFOCUSswDriftCrop.HP OrElse
                         _FOCUSswDriftCrop = eFOCUSswDriftCrop.VI OrElse
-                        _FOCUSswDriftCrop = eFOCUSswDriftCrop.VT Then
+                        _FOCUSswDriftCrop = eFOCUSswDriftCrop.VIL Then
 
                         Value = _applnMethodStep03
 
@@ -656,12 +657,13 @@ Public Class driftPercent
 
                 Case eApplnMethodStep03.airBlast
 
-                    If _FOCUSswDriftCrop <> eFOCUSswDriftCrop.PF AndAlso
+                    If _FOCUSswDriftCrop = eFOCUSswDriftCrop.PFE AndAlso
+                            _FOCUSswDriftCrop = eFOCUSswDriftCrop.PFL AndAlso
                         _FOCUSswDriftCrop <> eFOCUSswDriftCrop.OL AndAlso
                         _FOCUSswDriftCrop <> eFOCUSswDriftCrop.CI AndAlso
                         _FOCUSswDriftCrop <> eFOCUSswDriftCrop.HP AndAlso
                         _FOCUSswDriftCrop <> eFOCUSswDriftCrop.VI AndAlso
-                        _FOCUSswDriftCrop <> eFOCUSswDriftCrop.VT Then
+                        _FOCUSswDriftCrop <> eFOCUSswDriftCrop.VIL Then
 
                         Value = _applnMethodStep03
 
@@ -748,11 +750,11 @@ Public Class driftPercent
                         _Ganzelmeier = eGanzelmeier.not_defined
                         _applnMethodStep03 = eApplnMethodStep03.not_defined
 
-                    Case eFOCUSswDriftCrop.PF,
+                    Case eFOCUSswDriftCrop.PFE, eFOCUSswDriftCrop.PFL,
                          eFOCUSswDriftCrop.OL,
                          eFOCUSswDriftCrop.CI,
                          eFOCUSswDriftCrop.VI,
-                         eFOCUSswDriftCrop.VT,
+                         eFOCUSswDriftCrop.VIL,
                          eFOCUSswDriftCrop.HP
 
                         Select Case _applnMethodStep03
@@ -763,7 +765,7 @@ Public Class driftPercent
 
                                 Select Case _FOCUSswDriftCrop
 
-                                    Case eFOCUSswDriftCrop.PF
+                                    Case eFOCUSswDriftCrop.PFE, eFOCUSswDriftCrop.PFL
 
                                         Select Case _earlyLate
 
@@ -802,7 +804,7 @@ Public Class driftPercent
 
                                 Select Case _FOCUSswDriftCrop
 
-                                    Case eFOCUSswDriftCrop.PF
+                                    Case eFOCUSswDriftCrop.PFE, eFOCUSswDriftCrop.PFL
 
                                         Select Case _earlyLate
 
@@ -832,7 +834,7 @@ Public Class driftPercent
                                         _earlyLate = eEarlyLate.not_defined
 
                                 End Select
-                                '_Ganzelmeier = convertFOCUSCrop2Ganzelmeier(FOCUSswDriftCrop)
+                                _Ganzelmeier = convertFOCUSCrop2Ganzelmeier(FOCUSswDriftCrop)
 
                             Case eApplnMethodStep03.handHigh
 
@@ -3008,7 +3010,8 @@ Public Module FOCUSdriftDB
         ''' </summary>
         <Description(
                 "FB " & vbCrLf &
-                "Field beans 1st/2nd")>
+                "Field beans" & vbCrLf &
+                "1st/2nd")>
         FB
 
         ''' <summary>
@@ -3075,13 +3078,26 @@ Public Module FOCUSdriftDB
                 "Olives")>
         OL
 
+
         ''' <summary>
-        ''' PF Pome/stone fruits
+        ''' PFE Pome/stone fruits
+        ''' early BBCH 01 - 71, 96 - 99
         ''' </summary>
         <Description(
-                "PF " & vbCrLf &
-                "Pome fruits")>
-        PF
+                "PFE " & vbCrLf &
+                "Pome fruit" & vbCrLf &
+                "early BBCH 01 - 71, 96 - 99")>
+        PFE
+
+        ''' <summary>
+        ''' PFL Pome/stone fruits
+        ''' late  BBCH 72 - 95
+        ''' </summary>
+        <Description(
+                "PFL " & vbCrLf &
+                "Pome fruit" & vbCrLf &
+                "late  BBCH 72 - 95")>
+        PFL
 
         '-------------------------------------------------------------
 
@@ -3090,11 +3106,12 @@ Public Module FOCUSdriftDB
         ''' </summary>
         <Description(
                 "PS " & vbCrLf &
-                "Potatoes, 1st/2nd")>
+                "Potatoes" & vbCrLf &
+                "1st/2nd")>
         PS
 
         ''' <summary>
-        ''' SY Soybeans
+        ''' SY Soybean
         ''' </summary>
         <Description(
                 "SY " & vbCrLf &
@@ -3178,43 +3195,43 @@ Public Module FOCUSdriftDB
         ''' VIL Vines, late, for compatibility reasons
         ''' </summary>
         <Description(
-                "VT " & vbCrLf &
+                "VIL " & vbCrLf &
                 "Vines, late")>
-        VT
+        VIL
 
 
-        ''' <summary>
-        ''' Aerial appln.
-        ''' </summary>
-        <Description(
-            "AA " & vbCrLf &
-            "Aerial appln." & vbCrLf &
-            "")>
-        AA = 24
+        '''' <summary>
+        '''' Aerial appln.
+        '''' </summary>
+        '<Description(
+        '    "AA " & vbCrLf &
+        '    "Aerial appln." & vbCrLf &
+        '    "")>
+        'AA = 24
 
-        ''' <summary>
-        ''' HL Appln, hand (crop < 50 cm)
-        ''' </summary>
-        <Description(
-            "HL " & vbCrLf &
-            "Appln, hand (crop < 50 cm)")>
-        HL
+        '''' <summary>
+        '''' HL Appln, hand (crop < 50 cm)
+        '''' </summary>
+        '<Description(
+        '    "HL " & vbCrLf &
+        '    "Appln, hand (crop < 50 cm)")>
+        'HL
 
-        ''' <summary>
-        ''' HH Appln, hand (crop > 50 cm)
-        ''' </summary>
-        <Description(
-            "HH " & vbCrLf &
-            "Appln, hand (crop > 50 cm)")>
-        HH
+        '''' <summary>
+        '''' HH Appln, hand (crop > 50 cm)
+        '''' </summary>
+        '<Description(
+        '    "HH " & vbCrLf &
+        '    "Appln, hand (crop > 50 cm)")>
+        'HH
 
-        ''' <summary>
-        ''' no drift (incorporatio or seed treatment)
-        ''' </summary>
-        <Description(
-            "ND " & vbCrLf &
-            "No drift ")>
-        ND_NoDrift
+        '''' <summary>
+        '''' no drift (incorporatio or seed treatment)
+        '''' </summary>
+        '<Description(
+        '    "ND " & vbCrLf &
+        '    "No drift ")>
+        'ND_NoDrift
 
     End Enum
 
@@ -3265,18 +3282,22 @@ Public Module FOCUSdriftDB
         ArableCrops = 0
 
         ''' <summary>
-        ''' Fruit crops, early 23.599 %
+        ''' Fruit crops, early
+        ''' BBCH 01 - 71, 96 - 99, 23.599 %
         ''' </summary>
         <Description(
                 "Fruit crops, early " & vbCrLf &
+                "BBCH 01 - 71, 96 - 99 " & vbCrLf &
                 "23.599 %")>
         FruitCrops_Early
 
         ''' <summary>
-        ''' Fruit crops, late 11.134 %
+        ''' Fruit crops, late
+        ''' BBCH 72 - 95, 11.134 %
         ''' </summary>
         <Description(
                 "Fruit crops, late " & vbCrLf &
+                "BBCH 72 - 95 " & vbCrLf &
                 "11.134 %")>
         FruitCrops_Late
 
@@ -3679,12 +3700,13 @@ Public Module FOCUSdriftDB
         <Description(enumConverter(Of Type).not_defined)>
         not_defined = -1
 
-        SoilLinear_1
-        FoliarLinear_2
-        IncorpUniform_4
-        IncorpLinIncrease_5
-        IncorpLinDecrease_6
-        IncorpOneDepth_8
+        SoilLinear = 1
+        FoliarLinear = 2
+        IncorpUniform = 4
+        IncorpLinIncrease = 5
+        IncorpLinDecrease = 6
+        IncorpOneDepth = 8
+        FoliarLinearInclInterception = 12
 
     End Enum
 
@@ -3731,15 +3753,15 @@ Public Module FOCUSdriftDB
 
                 If .applnMethodStep03 = eApplnMethodStep03.handHigh Then
 
-                    dummyFOCUSswDriftCrop = eFOCUSswDriftCrop.HH
+                    '    dummyFOCUSswDriftCrop = eFOCUSswDriftCrop.HH
 
-                ElseIf .applnMethodStep03 = eApplnMethodStep03.handLow Then
+                    'ElseIf .applnMethodStep03 = eApplnMethodStep03.handLow Then
 
-                    dummyFOCUSswDriftCrop = eFOCUSswDriftCrop.HL
+                    '    dummyFOCUSswDriftCrop = eFOCUSswDriftCrop.HL
 
-                ElseIf .applnMethodStep03 = eApplnMethodStep03.aerial Then
+                    'ElseIf .applnMethodStep03 = eApplnMethodStep03.aerial Then
 
-                    dummyFOCUSswDriftCrop = eFOCUSswDriftCrop.AA
+                    '    dummyFOCUSswDriftCrop = eFOCUSswDriftCrop.AA
 
                 Else
 
@@ -4022,7 +4044,7 @@ Public Module FOCUSdriftDB
         'get Ganzelmeier crop group
         Select Case FOCUSswDriftCrop
 
-            Case eFOCUSswDriftCrop.PF
+            Case eFOCUSswDriftCrop.PFE, eFOCUSswDriftCrop.PFL
 
                 If herbicideUse Then
                     Ganzelmeier = eGanzelmeier.ArableCrops
@@ -4034,7 +4056,7 @@ Public Module FOCUSdriftDB
                 End If
 
             Case eFOCUSswDriftCrop.VI,
-                 eFOCUSswDriftCrop.VT,
+                 eFOCUSswDriftCrop.VIL,
                  eFOCUSswDriftCrop.HP,
                  eFOCUSswDriftCrop.OL,
                  eFOCUSswDriftCrop.CI
@@ -4208,7 +4230,7 @@ Public Module FOCUSdriftDB
                     eFOCUSswDriftCrop.CI,
                     eFOCUSswDriftCrop.OL,
                     eFOCUSswDriftCrop.VI,
-                    eFOCUSswDriftCrop.PF,
+                    eFOCUSswDriftCrop.PFE, eFOCUSswDriftCrop.PFL,
                     eFOCUSswDriftCrop.HP
 
                 buffer = eBufferWidth._03

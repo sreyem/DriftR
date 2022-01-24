@@ -57,7 +57,7 @@ restart:
 
         With test
 
-            .FOCUSswDriftCrop = eFOCUSswDriftCrop.PF
+            .FOCUSswDriftCrop = eFOCUSswDriftCrop.PFE
             .noOfApplns = eNoOfApplns.one
             .rate = 1
             .FOCUSswWaterBody = eFOCUSswWaterBody.ditch

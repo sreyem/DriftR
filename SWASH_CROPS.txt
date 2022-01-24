@@ -1,0 +1,39 @@
+CS		Cereals, Spring
+CW		Cereals, Winter
+CI		Citrus
+CIH		Citrus					herbicide use
+CO		Cotton
+FB1		Field beans 1st
+FB2		Field beans 2nd
+GA		Grass/alfalfa
+HP		Hops
+HPH		Hops					herbicide use
+LG		Legumes
+MZ		Maize
+OS		Oilseed rape, spring
+OW		Oilseed rape, winter
+OL		Olives
+OLH		Olives					herbicide use
+PF		Pome fruit				early/late
+PFE		Pome fruit				early BBCH 01 - 71, 96 - 99
+PFL		Pome fruit				late  BBCH 72 - 95
+PFH		Pome fruit				herbicide use, early/late
+PFHE	Pome fruit				herbicide use, early
+PFHL	Pome fruit				herbicide use, late
+PS1		Potatoes 1st
+PS2		Potatoes 2nd
+SY		Soybean
+SB		Sugar beets
+SU		Sunflower
+TB		Tobacco
+VB1		Vegetables, bulb 1st
+VB2		Vegetables, bulb 2nd
+VF		Vegetables, fruiting
+VL1		Vegetables, leafy 1st
+VL2		Vegetables, leafy 2nd
+VR1		Vegetables, root 1st
+VR2		Vegetables, root 2nd
+VI		Vines					early
+VIH		Vines					herbicide use, early
+VIL		Vines					late
+VIHL	Vines					herbicide use, late
