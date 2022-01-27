@@ -127,8 +127,8 @@ Public Module Enums
         ''' </summary>
         <Description(
                 "PF " & vbCrLf &
-                "Pome fruit" & vbCrLf &
-                " add. parameter BBCH needed")>
+                "Pome fruit " & vbCrLf &
+                "add. parameter BBCH needed")>
         PF
 
         ''' <summary>
@@ -137,8 +137,8 @@ Public Module Enums
         ''' </summary>
         <Description(
                 "PFE " & vbCrLf &
-                "Pome fruit" & vbCrLf &
-                " early BBCH 01-71, 96-99")>
+                "Pome fruit " & vbCrLf &
+                "early BBCH 01-71, 96-99")>
         PFE
 
         ''' <summary>
@@ -147,8 +147,8 @@ Public Module Enums
         ''' </summary>
         <Description(
                 "PFL " & vbCrLf &
-                "Pome fruit" & vbCrLf &
-                " late  BBCH 72-95")>
+                "Pome fruit " & vbCrLf &
+                "late  BBCH 72-95")>
         PFL
 
         '-------------------------------------------------------------
@@ -203,7 +203,7 @@ Public Module Enums
         ''' </summary>
         <Description(
                 "VB " & vbCrLf &
-                "Vegetables, bulb" & vbCrLf &
+                "Vegetables, bulb " & vbCrLf &
                 "1st/2nd")>
         VB
 
@@ -220,7 +220,7 @@ Public Module Enums
         ''' </summary>
         <Description(
                 "VL " & vbCrLf &
-                "Vegetables, leafy" & vbCrLf &
+                "Vegetables, leafy " & vbCrLf &
                 "1st/2nd")>
         VL
 
@@ -229,7 +229,7 @@ Public Module Enums
         ''' </summary>
         <Description(
                 "VR " & vbCrLf &
-                "Vegetables, root" & vbCrLf &
+                "Vegetables, root " & vbCrLf &
                 "1st/2nd")>
         VR
 
@@ -611,43 +611,43 @@ Public Module Enums
         <Description(enumConverter(Of Type).not_defined)>
         not_defined = -1
 
-        <Description("0")>
+        <Description(" 0%")>
         _0 = 0
 
-        <Description("10")>
+        <Description("10%")>
         _10 = 10
 
-        <Description("20")>
+        <Description("20%")>
         _20 = 20
 
-        <Description("25")>
+        <Description("25%")>
         _25 = 25
 
-        <Description("30")>
+        <Description("30%")>
         _30 = 30
 
-        <Description("40")>
+        <Description("40%")>
         _40 = 40
 
-        <Description("50")>
+        <Description("50%")>
         _50 = 50
 
-        <Description("60")>
+        <Description("60%")>
         _60 = 60
 
-        <Description("70")>
+        <Description("70%")>
         _70 = 70
 
-        <Description("75")>
+        <Description("75%")>
         _75 = 75
 
-        <Description("80")>
+        <Description("80%")>
         _80 = 80
 
-        <Description("90")>
+        <Description("90%")>
         _90 = 90
 
-        <Description("95")>
+        <Description("95%")>
         _95 = 95
 
     End Enum
@@ -761,28 +761,28 @@ Public Module Enums
         <Description(enumConverter(Of Type).not_defined)>
         not_defined = -1
 
-        <Description("1")>
+        <Description("1  90th Percentile")>
         _01 = 0
 
-        <Description("2")>
+        <Description("2  82th Percentile")>
         _02
 
-        <Description("3")>
+        <Description("3  77th Percentile")>
         _03
 
-        <Description("4")>
+        <Description("4  74th Percentile")>
         _04
 
-        <Description("5")>
+        <Description("5  72th Percentile")>
         _05
 
-        <Description("6")>
+        <Description("6  70th Percentile")>
         _06
 
-        <Description("7")>
+        <Description("7  69th Percentile")>
         _07
 
-        <Description("8+")>
+        <Description("8+ 67th Percentile")>
         _08
 
     End Enum
