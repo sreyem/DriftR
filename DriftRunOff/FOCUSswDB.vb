@@ -281,7 +281,7 @@ Public Module Enums
         'HH
 
         '''' <summary>
-        '''' no drift (incorporatio or seed treatment)
+        '''' no drift (incorporation or seed treatment)
         '''' </summary>
         '<Description(
         '    "ND " & vbCrLf &
@@ -289,6 +289,314 @@ Public Module Enums
         'ND_NoDrift
 
     End Enum
+
+    ''' <summary>
+    ''' Target crop season
+    ''' 1st, 2nd or both
+    ''' </summary>
+    <TypeConverter(GetType(enumConverter(Of eSeason)))>
+    Public Enum eSeason
+
+        <Description(enumConverter(Of Type).not_defined)>
+        not_defined = -1
+
+        <Description("1st")>
+        first
+
+        <Description("2nd")>
+        second
+
+        '<Description("1&2")>
+        'both
+
+    End Enum
+
+    Public Function GetBBCHSearchStringsFromCrop(
+                                   FOCUSswDriftCrop As eFOCUSswDriftCrop,
+                          Optional Season As eSeason = eSeason.first) As String
+
+        Dim temp As String()
+
+        If FOCUSswDriftCrop = eFOCUSswDriftCrop.not_defined Then Return ""
+
+        Select Case FOCUSswDriftCrop
+
+            Case eFOCUSswDriftCrop.HP,
+                 eFOCUSswDriftCrop.CI,
+                 eFOCUSswDriftCrop.OL,
+                 eFOCUSswDriftCrop.GA
+
+                Return ""
+
+            Case eFOCUSswDriftCrop.CW
+
+                Return "Cereals, Winter"
+
+            Case eFOCUSswDriftCrop.CS
+
+                Return "Cereals, Spring"
+
+            Case eFOCUSswDriftCrop.PF,
+                 eFOCUSswDriftCrop.PFE,
+                 eFOCUSswDriftCrop.PFL
+
+                Return "Pome fruit"
+
+            Case eFOCUSswDriftCrop.VI,
+                 eFOCUSswDriftCrop.VIL
+
+                Return "Vines"
+
+            Case eFOCUSswDriftCrop.SY
+
+                Return "Soybean"
+
+            Case eFOCUSswDriftCrop.SU
+                Return "Sunflower"
+
+        End Select
+
+        temp =
+            enumConverter(Of eFOCUSswDriftCrop).getEnumDescription(FOCUSswDriftCrop).Split(vbCrLf)
+
+        For counter As Integer = 0 To temp.Count - 1
+
+            temp(counter) =
+                Replace(temp(counter), vbLf, "")
+
+        Next
+
+        If temp.Last.Contains("1st/2nd") Then
+
+            'If Season = eSeason.both Then
+            '    Return {description(1) & "1st", description(1) & "2nd"}
+            'Else
+            If Season = eSeason.first Then
+                Return temp(1) & "1st"
+            Else
+                Return temp(1) & "2nd"
+            End If
+
+        Else
+            Return temp(1)
+        End If
+
+    End Function
+
+
+    ''' <summary>
+    ''' simple enum 0 - 99
+    ''' </summary>
+    <TypeConverter(GetType(enumConverter(Of eBBCH)))>
+    Public Enum eBBCH
+
+        <Description(enumConverter(Of Type).not_defined)>
+        not_defined = -1
+
+        <Description("00")>
+        _0 = 0
+        <Description("01")>
+        _1
+        <Description("02")>
+        _2
+        <Description("03")>
+        _3
+        <Description("04")>
+        _4
+        <Description("05")>
+        _5
+        <Description("06")>
+        _6
+        <Description("07")>
+        _7
+        <Description("08")>
+        _8
+        <Description("09")>
+        _9
+        <Description("10")>
+        _10
+        <Description("11")>
+        _11
+        <Description("12")>
+        _12
+        <Description("13")>
+        _13
+        <Description("14")>
+        _14
+        <Description("15")>
+        _15
+        <Description("16")>
+        _16
+        <Description("17")>
+        _17
+        <Description("18")>
+        _18
+        <Description("19")>
+        _19
+        <Description("20")>
+        _20
+        <Description("21")>
+        _21
+        <Description("22")>
+        _22
+        <Description("23")>
+        _23
+        <Description("24")>
+        _24
+        <Description("25")>
+        _25
+        <Description("26")>
+        _26
+        <Description("27")>
+        _27
+        <Description("28")>
+        _28
+        <Description("29")>
+        _29
+        <Description("30")>
+        _30
+        <Description("31")>
+        _31
+        <Description("32")>
+        _32
+        <Description("33")>
+        _33
+        <Description("34")>
+        _34
+        <Description("35")>
+        _35
+        <Description("36")>
+        _36
+        <Description("37")>
+        _37
+        <Description("38")>
+        _38
+        <Description("39")>
+        _39
+        <Description("40")>
+        _40
+        <Description("41")>
+        _41
+        <Description("42")>
+        _42
+        <Description("43")>
+        _43
+        <Description("44")>
+        _44
+        <Description("45")>
+        _45
+        <Description("46")>
+        _46
+        <Description("47")>
+        _47
+        <Description("48")>
+        _48
+        <Description("49")>
+        _49
+        <Description("50")>
+        _50
+        <Description("51")>
+        _51
+        <Description("52")>
+        _52
+        <Description("53")>
+        _53
+        <Description("54")>
+        _54
+        <Description("55")>
+        _55
+        <Description("56")>
+        _56
+        <Description("57")>
+        _57
+        <Description("58")>
+        _58
+        <Description("59")>
+        _59
+        <Description("60")>
+        _60
+        <Description("61")>
+        _61
+        <Description("62")>
+        _62
+        <Description("63")>
+        _63
+        <Description("64")>
+        _64
+        <Description("65")>
+        _65
+        <Description("66")>
+        _66
+        <Description("67")>
+        _67
+        <Description("68")>
+        _68
+        <Description("69")>
+        _69
+        <Description("70")>
+        _70
+        <Description("71")>
+        _71
+        <Description("72")>
+        _72
+        <Description("73")>
+        _73
+        <Description("74")>
+        _74
+        <Description("75")>
+        _75
+        <Description("76")>
+        _76
+        <Description("77")>
+        _77
+        <Description("78")>
+        _78
+        <Description("79")>
+        _79
+        <Description("80")>
+        _80
+        <Description("81")>
+        _81
+        <Description("82")>
+        _82
+        <Description("83")>
+        _83
+        <Description("84")>
+        _84
+        <Description("85")>
+        _85
+        <Description("86")>
+        _86
+        <Description("87")>
+        _87
+        <Description("88")>
+        _88
+        <Description("89")>
+        _89
+        <Description("90")>
+        _90
+        <Description("91")>
+        _91
+        <Description("92")>
+        _92
+        <Description("93")>
+        _93
+        <Description("94")>
+        _94
+        <Description("95")>
+        _95
+        <Description("96")>
+        _96
+        <Description("97")>
+        _97
+        <Description("98")>
+        _98
+        <Description("99")>
+        _99
+
+
+    End Enum
+
 
     ''' <summary>
     ''' Ganzelmeier crop groups
@@ -653,7 +961,7 @@ Public Module Enums
     End Enum
 
     ''' <summary>
-    ''' Pic water body depth value out of sim. yeaars
+    ''' Pic water body depth value out of sim. years
     ''' </summary>
     <TypeConverter(GetType(enumConverter(Of eDepthValueMode)))>
     Public Enum eDepthValueMode
@@ -850,7 +1158,6 @@ Public Module DBs
         Dim out As New List(Of String)
         Dim enumWaterBody As eFOCUSswWaterBody
 
-
         WBs =
             Filter(
                 Source:=scenarioXWaterBody,
@@ -945,6 +1252,73 @@ Public Module DBs
                     "VI|D6|R1|R2|R3|R4"
                 }
 
+
+    Public Function GetMACRO_pFileFromCropScenario(
+                                    Crop As eFOCUSswDriftCrop,
+                                    Scenario As eFOCUSswScenario) As String
+
+
+        Try
+            Return Filter(
+            Source:=cropScenarioXMACRO_p,
+            Match:=Scenario.ToString & "," & Crop.ToString,
+            Include:=True,
+            Compare:=CompareMethod.Text).First.Split(",").Last
+
+        Catch ex As Exception
+            Return ""
+        End Try
+
+    End Function
+
+
+    Public cropScenarioXMACRO_p As String() =
+            {
+            "D3,MZ,vr_ima_p.BIN",
+            "D3,OS,vrede_p.BIN",
+            "D3,OW,vrede_p.BIN",
+            "D3,PF,vr_ipf_p.BIN",
+            "D3,PS,vr_ipo_p.BIN",
+            "D3,SB,vr_isb_p.BIN",
+            "D3,VB,vr_ibv_p.BIN",
+            "D3,VL,vr_ilv_p.BIN",
+            "D3,VR,vr_irv_p.BIN",
+            "D4,CS,skous_p.BIN",
+            "D4,CW,skous_p.BIN",
+            "D4,FB,skous_p.BIN",
+            "D4,GA,skous_p.BIN",
+            "D4,LG,sk_ile_p.BIN",
+            "D4,MZ,skous_p.BIN",
+            "D4,OS,skous_p.BIN",
+            "D4,OW,skous_p.BIN",
+            "D4,PF,skous_p.BIN",
+            "D4,PS,sk_ipo_p.BIN",
+            "D4,SB,sk_isb_p.BIN",
+            "D4,VB,sk_ibv_p.BIN",
+            "D4,VL,sk_ilv_p.BIN",
+            "D5,CS,jaill_p.BIN",
+            "D5,CW,jaill_p.BIN",
+            "D5,GA,jaill_p.BIN",
+            "D5,LG,jaill_p.BIN",
+            "D5,MZ,jaill_p.BIN",
+            "D5,OS,jaill_p.BIN",
+            "D5,OW,jaill_p.BIN",
+            "D5,PF,jaill_p.BIN",
+            "D5,SU,jaill_p.BIN",
+            "D6,CI,th_ici_p.BIN",
+            "D6,CO,th_ico_p.BIN",
+            "D6,CW,thebe_p.BIN",
+            "D6,FB,th_ifb_p.BIN",
+            "D6,LG,th_ile_p.BIN",
+            "D6,MZ,th_ima_p.BIN",
+            "D6,OL,thebe_p.BIN",
+            "D6,PS,th_ipo_p.BIN",
+            "D6,VB,th_ibv_p.BIN",
+            "D6,VF,th_ifv_p.BIN",
+            "D6,VI,thebe_p.BIN",
+            "D6,VL,th_ilv_p.BIN",
+            "D6,VR,th_irv_p.BIN"
+            }
 
 
 #Region "    Regression parameters and hinge point"

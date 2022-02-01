@@ -1,9 +1,9 @@
 ﻿
 Imports System.ComponentModel
+Imports System.Drawing.Design
 Imports System.IO
 Imports System.Web.Script.Serialization
 Imports System.Xml.Serialization
-Imports core
 
 
 Module Main
@@ -16,37 +16,46 @@ restart:
 
         Console.Clear()
 
-        mylog(LogTxtArray:=getStartInfo)
+        'mylog(LogTxtArray:=getStartInfo)
 
         'mylog(
         '    LogTxt:="ztsParser v " &
         '    getExecVersionInfo(
         '    filename:=Path.Combine(Environment.CurrentDirectory, "ztsParser.exe")).ToString)
 
-        DriftR = New DriftR
+        'DriftR = New DriftR
+        'DriftR.DrainHyd553 = File.ReadAllLines(path:="DrainHyd5553.csv")
+        'DriftR.SWASHBBCHout = File.ReadAllLines(path:="SWASH_BBCH.out")
 
-        DriftR.DrainHyd553 = File.ReadAllLines(path:="DrainHyd5553.csv")
+        BBCH = New BBCH
+        BBCH.SWASH_BBCHout = File.ReadAllLines(path:="SWASH_BBCH.out")
+
+
 
         With DriftR
 
-            .FOCUSswDriftCrop = eFOCUSswDriftCrop.CW
-            .FOCUSswScenario = eFOCUSswScenario.D5
-            .FOCUSswWaterBody = eFOCUSswWaterBody.ST
-            .ApplnMethodStep03 = eApplnMethodStep03.GS
-            .NoOfApplns = eNoOfApplns._02
-            .Rate = 0.25
-            .ApplnDate = New Date(year:=1901, month:=4, day:=22)
+            '.FOCUSswDriftCrop = eFOCUSswDriftCrop.CW
+            '.FOCUSswScenario = eFOCUSswScenario.D5
+            '.FOCUSswWaterBody = eFOCUSswWaterBody.ST
+            '.ApplnMethodStep03 = eApplnMethodStep03.GS
+            '.NoOfApplns = eNoOfApplns._02
+            '.Rate = 0.25
+            '.ApplnDate = New Date(year:=1901, month:=4, day:=22)
 
-            .RAC = 0.3
+            '.RAC = 0.3
 
         End With
 
 
-        showform = New frmPropGrid(
-            class2Show:=DriftR,
-             classType:=DriftR.GetType,
-               restart:=True)
+        'showform = New frmPropGrid(
+        '    class2Show:=DriftR,
+        '     classType:=DriftR.GetType,
+        '       restart:=True)
 
+        showform = New frmPropGrid(
+            class2Show:=BBCH,
+             classType:=BBCH.GetType,
+               restart:=True)
 
         Try
 
@@ -80,10 +89,12 @@ restart:
 
     Public Property DriftR As New DriftR
 
-
+    Public Property BBCH As New BBCH
 
 End Module
 
+<Serializable>
+<DefaultProperty("FOCUSswDriftCrop")>
 <TypeConverter(GetType(PropGridConverter))>
 Public Class DriftR
 
@@ -95,6 +106,8 @@ Public Class DriftR
     Public Const catInput As String = " 01 Main"
 
 #Region "    Main"
+
+#Region "    FOCUS Crop & Scenario"
 
     <DebuggerBrowsable(DebuggerBrowsableState.Never)>
     Private _FOCUSswDriftCrop As eFOCUSswDriftCrop = eFOCUSswDriftCrop.not_defined
@@ -173,6 +186,17 @@ Public Class DriftR
         End Set
     End Property
 
+    <Category(catInput)>
+    <RefreshProperties(RefreshProperties.All)>
+    Public ReadOnly Property BBCHCrop As String
+        Get
+            Return GetBBCHSearchStringsFromCrop(
+                FOCUSswDriftCrop:=_FOCUSswDriftCrop,
+                Season:=eSeason.first)
+
+        End Get
+    End Property
+
 
     <DebuggerBrowsable(DebuggerBrowsableState.Never)>
     Private _FOCUSswScenario As eFOCUSswScenario = eFOCUSswScenario.not_defined
@@ -235,6 +259,8 @@ Public Class DriftR
         End Set
     End Property
 
+#End Region
+
 #Region "    Water body and depth in m"
 
     <DebuggerBrowsable(DebuggerBrowsableState.Never)>
@@ -290,7 +316,9 @@ Public Class DriftR
                         _waterDepth = 0.3
                     End If
 
-                    CalcDriftPercentDistances()
+                    CalcDriftPercentDistances(
+                        Distances:=Me.Distances,
+                        Nozzle:=Me.Nozzle)
 
                 End If
 
@@ -380,7 +408,9 @@ Public Class DriftR
                     Ganzelmeier:=Ganzelmeier,
                     NoOfApplns:=_noOfApplns)
 
-            CalcDriftPercentDistances()
+            CalcDriftPercentDistances(
+                        Distances:=Me.Distances,
+                        Nozzle:=Me.Nozzle)
 
         End Set
     End Property
@@ -503,6 +533,8 @@ Public Class DriftR
         End Get
         Set
 
+            If IsNothing(Value) Then Value = " - "
+
             If Value <> " - " Then
 
                 Value =
@@ -593,7 +625,7 @@ Public Class DriftR
 
     Public DrainHyd553 As String() = {}
 
-    Private _ApplnDate As New Date(year:=1901, month:=1, day:=1)
+    Private _ApplnDate As New Date
 
     <Category(catInput)>
     <DisplayName(
@@ -653,12 +685,114 @@ Public Class DriftR
 
 #End Region
 
-    Private _Step03 As Double
+#End Region
 
-    <Category(catInput)>
-    Public ReadOnly Property Step03 As String
+    <DebuggerBrowsable(DebuggerBrowsableState.Never)>
+    Public Const catResults As String = " 02 Results"
+
+#Region "    Results"
+
+#Region "    Step 02"
+
+    Public _Step02 As Double = 0
+
+    <Category(catResults)>
+    Public ReadOnly Property Step02 As String
         Get
 
+            Dim Distances As New Distances
+
+            Select Case _FOCUSswDriftCrop
+
+                Case eFOCUSswDriftCrop.HP
+
+                    If _noOfApplns <> eNoOfApplns.not_defined Then
+                        _Step02 =
+                            {
+                            19.326,
+                            17.723,
+                            15.928,
+                            15.378,
+                            15.114,
+                            14.902,
+                            14.628,
+                            13.52,
+                            13.52
+                            }(_noOfApplns)
+                    End If
+
+                Case eFOCUSswDriftCrop.CI,
+                     eFOCUSswDriftCrop.OL,
+                     eFOCUSswDriftCrop.VI,
+                     eFOCUSswDriftCrop.VIL,
+                     eFOCUSswDriftCrop.PF,
+                     eFOCUSswDriftCrop.PFE,
+                     eFOCUSswDriftCrop.PFL
+
+                    Distances.GetDistance(
+                        Distances:=Distances,
+                        FOCUSswDriftCrop:=_FOCUSswDriftCrop,
+                        FOCUSswWaterBody:=eFOCUSswWaterBody.DI,
+                        ApplnMethodStep03:=_applnMethodStep03,
+                        Buffer:=3)
+
+                Case Else
+
+                    Distances.GetDistance(
+                        Distances:=Distances,
+                        FOCUSswDriftCrop:=_FOCUSswDriftCrop,
+                        FOCUSswWaterBody:=eFOCUSswWaterBody.DI,
+                        ApplnMethodStep03:=_applnMethodStep03,
+                        Buffer:=1)
+
+            End Select
+
+
+            If _FOCUSswDriftCrop <> eFOCUSswDriftCrop.HP Then
+
+                CalcDriftPercentDistances(Distances:=Distances, Nozzle:=eNozzles._0)
+
+                If _noOfApplns = eNoOfApplns._01 Then
+                    _Step02 = Distances.NearestDriftPercentSingle
+                Else
+                    _Step02 = Distances.NearestDriftPercentMulti
+                End If
+
+            End If
+
+
+            If _Step02 = 0 Then Return " - "
+
+            _Step02 = Math.Round(_Step02, digits:=3)
+
+            If _rate <> 0 Then
+
+                _Step02 = _Step02 * _rate / 0.3
+
+                If _noOfApplns > eNoOfApplns._01 AndAlso MAF > 1 Then
+                    _Step02 *= MAF
+                End If
+
+                Return "PECsw : " & _Step02.ToString("0.0000") & " μg/L"
+
+            Else
+                Return "Drift : " & _Step02.ToString("0.0000") & " %"
+            End If
+
+        End Get
+    End Property
+
+
+#End Region
+
+#Region "    Step 03"
+
+    Public _Step03 As Double
+
+    <Category(catResults)>
+    <Editor(GetType(buttonEmulator), GetType(UITypeEditor))>
+    Public Property Step03 As String
+        Get
 
             _Step03 =
                 CalcDriftPercent(
@@ -681,17 +815,197 @@ Public Class DriftR
 
                 If _waterDepth > 0 AndAlso Not Double.IsNaN(_Step03) Then
                     _Step03 = _rate * _Step03 / _waterDepth
+
+                    If _noOfApplns > eNoOfApplns._01 AndAlso
+                       _FOCUSswWaterBody = eFOCUSswWaterBody.PO Then
+                        _Step03 *= MAF
+                    End If
+
                     Return "PECsw : " & _Step03.ToString("0.0000") & " μg/L"
                 Else
+                    _Step03 = 0
                     Return "depth?"
                 End If
 
             End If
 
         End Get
+        Set(value As String)
+            If value = buttonEmulator.Clicked Then
+
+                Dim filepath As String = String.Empty
+                Dim CSVfiles As String() = {}
+                Dim CSVfile As String() = {}
+                Dim rate As Double = -1
+                Dim appln As Double = -1
+                Dim temp() As String = {}
+                Dim maxRow() As String = {}
+                Dim max As Double = -1
+                Dim maxdate As New Date
+                Dim dummy As String()
+
+
+                filepath = InputBox(Prompt:="CSV filepath")
+                filepath = Replace(Expression:=filepath, Find:=Chr(34), Replacement:="", Compare:=CompareMethod.Text)
+
+                Try
+                    CSVfiles =
+                    Directory.GetFiles(
+                    path:=Path.GetDirectoryName(filepath),
+                    searchPattern:="*" & Path.GetFileName(filepath).Split("-")(1) & "*.csv")
+
+                    If CSVfiles.Count > 0 Then
+                        Console.WriteLine(CSVfiles.Count & " files found")
+                    Else
+                        Console.WriteLine("No files found : *" & Path.GetFileName(filepath).Split("-")(1) & "*.csv")
+                        Exit Property
+                    End If
+                Catch ex As Exception
+                    Console.WriteLine(ex.Message)
+                    Exit Property
+                End Try
+
+                For Each member As String In CSVfiles
+
+                    Me.FOCUSswScenario =
+                    [Enum].Parse(
+                    enumType:=GetType(eFOCUSswScenario),
+                    value:=member.Split("-").Last.Substring(0, 2))
+
+                    Select Case member.Split("-").Last.Substring(2, 1)
+                        Case "D"
+                            Me.FOCUSswWaterBody = eFOCUSswWaterBody.DI
+                        Case "S"
+                            Me.FOCUSswWaterBody = eFOCUSswWaterBody.ST
+                        Case Else
+                            Me.FOCUSswWaterBody = eFOCUSswWaterBody.PO
+                    End Select
+
+                    Try
+                        CSVfile = File.ReadAllLines(member)
+                        'Console.WriteLine(Path.GetFileName(member))
+                    Catch ex As Exception
+                        Console.WriteLine(ex.Message)
+                        Exit Property
+                    End Try
+
+
+                    Me.Rate =
+                    Double.Parse(Filter(
+                    Source:=CSVfile,
+                    Match:="* Rate(s)",
+                    Include:=True,
+                    Compare:=CompareMethod.Text).First.Split(",").Last) / 1000
+
+                    temp = Filter(
+                    Source:=CSVfile,
+                    Match:="* Appln(s)",
+                    Include:=True,
+                    Compare:=CompareMethod.Text).First.Split(",")
+
+                    Me.NoOfApplns = temp.Count - 2
+
+                    max = -1
+                    maxdate = New Date
+
+                    For counter As Integer = 1 To temp.Count - 1
+
+                        maxRow = Filter(
+                    Source:=CSVfile,
+                    Match:=temp(counter) & " 09:00",
+                    Include:=True,
+                    Compare:=CompareMethod.Text).First.Split(",")
+
+                        If Double.Parse(maxRow(1)) > max Then
+                            max = Double.Parse(maxRow(1))
+                            dummy = maxRow.First.Split
+                            dummy = dummy.First.Split("-")
+
+                            maxdate =
+                                New Date(
+                                year:=CInt(dummy(0)),
+                                month:=CInt(dummy(1)),
+                                day:=CInt(dummy(2)))
+                        End If
+
+                    Next
+
+                    dummy = Path.GetFileNameWithoutExtension(member).Split("-")
+
+                    Me.ApplnDate = maxdate
+                    Console.WriteLine(
+                        maxdate.ToShortDateString & " " & dummy(0).PadLeft(2) & "-" & dummy(2) & " : " &
+                            max.ToString("0.0000") & "μg/L: " & Me.Step03.PadLeft(15) & " : " &
+                           (100 - max / _Step03 * 100).ToString("0.00") & "%")
+
+                Next
+
+            End If
+
+        End Set
     End Property
 
+#End Region
+
 #Region "    Step 04"
+
+    Public _Step04 As Double
+
+    <Category(catResults)>
+    Public ReadOnly Property Step04 As String
+        Get
+
+            If _nozzle = 0 AndAlso _buffer = 0 Then
+                Return " - "
+            End If
+
+            Dim DriftPercent As Double
+
+            DriftPercent =
+                CalcDriftPercent(
+                noOfApplns:=_noOfApplns,
+                FOCUSswDriftCrop:=_FOCUSswDriftCrop,
+                FOCUSswWaterBody:=_FOCUSswWaterBody,
+                ApplnMethodStep03:=_applnMethodStep03,
+                Nozzle:=_nozzle,
+                Buffer:=_buffer)
+
+            If _rate = 0 Then
+
+                If DriftPercent <> 0 AndAlso Not Double.IsNaN(DriftPercent) Then
+
+                    _Step04 = DriftPercent
+
+                    Return "Drift : " & _Step04.ToString("0.0000") & " %"
+                Else
+                    _Step04 = 0
+                    Return " - "
+                End If
+
+
+            Else
+
+                If _waterDepth > 0 AndAlso Not Double.IsNaN(DriftPercent) Then
+
+                    _Step04 = _rate * DriftPercent / _waterDepth
+
+                    If _noOfApplns > eNoOfApplns._01 AndAlso
+                       _FOCUSswWaterBody = eFOCUSswWaterBody.PO Then
+                        _Step04 *= MAF
+                    End If
+
+                    Return "PECsw : " & _Step04.ToString("0.0000") & " μg/L"
+                Else
+                    _Step04 = 0
+                    Return "depth?"
+                End If
+
+            End If
+
+
+        End Get
+    End Property
+
 
 #Region "    Buffer"
 
@@ -699,7 +1013,7 @@ Public Class DriftR
     ''' GUI : Time between applns. in days
     ''' </summary>
     ''' <returns></returns>
-    <Category(catInput)>
+    <Category(catResults)>
     <DisplayName(
     "Buffer")>
     <Description(
@@ -777,7 +1091,7 @@ Public Class DriftR
     <RefreshProperties(RefreshProperties.All)>
     <Description("Buffer")>
     <DisplayName("Buffer")>
-    <Category(catInput)>
+    <Category(catResults)>
     <DefaultValue(0)>
     <Browsable(False)>
     <TypeConverter(GetType(DblConv))>
@@ -798,11 +1112,15 @@ Public Class DriftR
                        ApplnMethodStep03:=_applnMethodStep03,
                        Buffer:=_buffer)
 
-            CalcDriftPercentDistances()
+            CalcDriftPercentDistances(
+                        Distances:=Me.Distances,
+                        Nozzle:=Me.Nozzle)
         End Set
     End Property
 
 #End Region
+
+#Region "    Nozzle"
 
     <DebuggerBrowsable(DebuggerBrowsableState.Never)>
     Private _nozzle As eNozzles = eNozzles.not_defined
@@ -811,7 +1129,7 @@ Public Class DriftR
     ''' Drift reducing nozzle in %
     ''' </summary>
     ''' <returns></returns>
-    <Category(catInput)>
+    <Category(catResults)>
     <DisplayName(
         "Nozzle")>
     <Description(
@@ -828,59 +1146,22 @@ Public Class DriftR
         End Get
         Set
             _nozzle = Value
-            CalcDriftPercentDistances()
+
+            CalcDriftPercentDistances(
+                        Distances:=Me.Distances,
+                        Nozzle:=Me.Nozzle)
+
         End Set
     End Property
 
-    <Category(catInput)>
-    Public ReadOnly Property Step04 As String
-        Get
-
-            If _nozzle = 0 AndAlso _buffer = 0 Then
-                Return " - "
-            End If
-
-            Dim DriftPercent As Double
-
-            DriftPercent =
-                CalcDriftPercent(
-                noOfApplns:=_noOfApplns,
-                FOCUSswDriftCrop:=_FOCUSswDriftCrop,
-                FOCUSswWaterBody:=_FOCUSswWaterBody,
-                ApplnMethodStep03:=_applnMethodStep03,
-                Nozzle:=_nozzle,
-                Buffer:=_buffer)
-
-            If _rate = 0 Then
-
-                If DriftPercent <> 0 AndAlso Not Double.IsNaN(DriftPercent) Then
-                    Return "Drift : " & DriftPercent.ToString("0.0000") & " %"
-                Else
-                    Return " - "
-                End If
-
-
-            Else
-
-                If _waterDepth > 0 AndAlso Not Double.IsNaN(DriftPercent) Then
-                    Return "PECsw : " & (_rate * DriftPercent / _waterDepth).ToString("0.0000") & " μg/L"
-                Else
-                    Return "depth?"
-                End If
-
-            End If
-
-
-        End Get
-    End Property
-
+#End Region
 
     ''' <summary>
     ''' Total drift reduction compared to Step03
     ''' "Buffer + Nozzle in percent, single appln.
     ''' </summary>
     ''' <returns></returns>
-    <Category(catInput)>
+    <Category(catResults)>
     <DisplayName(
     "Total Reduction")>
     <Description(
@@ -894,7 +1175,7 @@ Public Class DriftR
     "|unit='%'")>
     <XmlIgnore> <ScriptIgnore>
     <DefaultValue(Double.NaN)>
-    Public ReadOnly Property TotalDriftSingle As Double
+    Public ReadOnly Property TotalReduction As Double
         Get
 
             Dim Step03Drift As Double
@@ -934,10 +1215,220 @@ Public Class DriftR
 
 #End Region
 
+#Region "    RAC"
+
+    <Category(catResults)>
+    <DisplayName(
+    "RAC")>
+    <Description(
+    "Regulatory acceptable concentration")>
+    <TypeConverter(GetType(DblConv))>
+    <RefreshProperties(RefreshProperties.All)>
+    <DefaultValue(0)>
+    <Browsable(True)>
+    Public Property RAC As Double = 0
+
+
+    <Category(catResults)>
+    <RefreshProperties(RefreshProperties.All)>
+    <DisplayName(
+    "Buffer : Nozzle")>
+    <Description(
+    "Min Nozzle in % to beat RAC" & vbCrLf &
+    "for Step03, 5m ,10, 15m and 20m Buffer")>
+    Public ReadOnly Property GUINozzlePerBuffer4RAC As String()
+        Get
+
+
+            Dim temp As Double
+            Dim out As New List(Of Double)
+            Dim gui As New List(Of String)
+
+            If _rate = 0 OrElse RAC = 0 OrElse _waterDepth < 0 Then
+                Return {}
+            Else
+
+                For buffer As Integer = 0 To 20 Step 5
+
+                    temp =
+                        CalcDriftPercent(
+                            noOfApplns:=_noOfApplns,
+                            FOCUSswDriftCrop:=_FOCUSswDriftCrop,
+                            FOCUSswWaterBody:=_FOCUSswWaterBody,
+                            ApplnMethodStep03:=_applnMethodStep03,
+                            Buffer:=buffer)
+
+                    If Not Double.IsNaN(temp) Then
+                        temp = _rate * temp / _waterDepth
+                        temp = 100 - (RAC / temp * 100)
+
+                        If temp > 0 Then
+
+                            temp = Math.Ceiling(temp)
+                            out.Add(Math.Ceiling(temp))
+
+                            If buffer = 0 Then
+                                gui.Add("Step03 : min " & temp & "%")
+                            Else
+                                gui.Add(buffer.ToString("00") & "m    : min " & temp & "%")
+                            End If
+
+                        Else
+
+                            If buffer = 0 Then
+                                gui.Add("Step03 : - ")
+                            Else
+                                gui.Add(buffer.ToString("00") & "m    : - ")
+                            End If
+
+                            out.Add(Double.NaN)
+                        End If
+
+                    Else
+                        out.Add(Double.NaN)
+                    End If
+                Next
+            End If
+
+            NozzlePerBuffer4RAC = out.ToArray
+            Return gui.ToArray
+
+        End Get
+    End Property
+
+    <XmlIgnore> <ScriptIgnore>
+    <Category(catResults)>
+    <RefreshProperties(RefreshProperties.All)>
+    <Browsable(False)>
+    Public Property NozzlePerBuffer4RAC As Double()
+
 #End Region
 
+#End Region
+
+
     <DebuggerBrowsable(DebuggerBrowsableState.Never)>
-    Public Const catSpecial As String = " 02 Special"
+    Public Const catBBCH As String = " 02 BBCH"
+
+#Region "   BBCH Test"
+
+
+    Public SWASH_BBCHout As String() = {}
+
+
+    Private _BBCH1st As eBBCH = eBBCH._0
+
+    <Category(catBBCH)>
+    <RefreshProperties(RefreshProperties.All)>
+    Public Property BBCH1st As eBBCH
+        Get
+            Return _BBCH1st
+        End Get
+        Set
+
+
+            If _FOCUSswDriftCrop = eFOCUSswDriftCrop.not_defined OrElse
+               _FOCUSswScenario = eFOCUSswScenario.not_defined Then
+                Exit Property
+            End If
+
+
+            _BBCH1st = Value
+
+            Dim test As String() = {}
+
+            test =
+                Filter(
+                    Source:=SWASH_BBCHout,
+                    Match:=GetBBCHSearchStringsFromCrop(
+                        FOCUSswDriftCrop:=_FOCUSswDriftCrop,
+                        Season:=eSeason.first).First)
+
+            test =
+                Filter(Source:=test, Match:=_FOCUSswScenario.ToString)
+
+            test =
+                Filter(Source:=test, Match:=vbTab & _BBCH1st & vbTab)
+
+            test = test.First.Split(vbTab)(6).Split(".")
+
+            Date1st = New Date(year:=test(2), month:=test(1), day:=test(0))
+
+            BBCHEnd = _BBCH1st
+
+        End Set
+    End Property
+
+    <Category(catBBCH)>
+    <RefreshProperties(RefreshProperties.All)>
+    Public Property Date1st As New Date
+
+
+    Private _BBCHEnd As eBBCH = eBBCH._0
+
+    <Category(catBBCH)>
+    <RefreshProperties(RefreshProperties.All)>
+    Public Property BBCHEnd As eBBCH
+        Get
+            Return _BBCHEnd
+        End Get
+        Set
+            If Value >= _BBCH1st Then
+                _BBCHEnd = Value
+            End If
+
+            Dim test As String() = {}
+
+            test =
+                Filter(
+                    Source:=SWASH_BBCHout,
+                    Match:=GetBBCHSearchStringsFromCrop(
+                        FOCUSswDriftCrop:=_FOCUSswDriftCrop,
+                        Season:=eSeason.first).First)
+
+            test =
+                Filter(Source:=test, Match:=_FOCUSswScenario.ToString)
+
+            test =
+                Filter(Source:=test, Match:=vbTab & _BBCHEnd & vbTab)
+
+            test = test.First.Split(vbTab)(6).Split(".")
+
+            Datelast = New Date(year:=test(2), month:=test(1), day:=test(0))
+
+
+        End Set
+    End Property
+
+    <Category(catBBCH)>
+    <RefreshProperties(RefreshProperties.All)>
+    Public Property Datelast As New Date
+
+    <Category(catBBCH)>
+    <RefreshProperties(RefreshProperties.All)>
+    Public ReadOnly Property Window As Integer
+        Get
+            If _noOfApplns = 1 Then
+                Return 30
+            Else
+                Return 30 + _noOfApplns * _interval
+            End If
+        End Get
+    End Property
+
+
+
+
+    <Category(catBBCH)>
+    <RefreshProperties(RefreshProperties.All)>
+    Public Property PHI As Integer = 0
+
+
+#End Region
+
+
+    <DebuggerBrowsable(DebuggerBrowsableState.Never)>
+    Public Const catSpecial As String = " 03 Special"
 
 #Region "    Special"
 
@@ -959,9 +1450,9 @@ Public Class DriftR
     "DT50sw for calculation of multi applns. ponds")>
     <TypeConverter(GetType(DblConv))>
     <RefreshProperties(RefreshProperties.All)>
-    <DefaultValue(0)>
+    <DefaultValue(100)>
     <Browsable(True)>
-    Public Property DT50sw As Double = 0
+    Public Property DT50sw As Double = 100
 
 
 #Region "    Interval : Time between applns. in days"
@@ -1032,7 +1523,7 @@ Public Class DriftR
     End Property
 
     <DebuggerBrowsable(DebuggerBrowsableState.Never)>
-    Private _interval As Integer = 0
+    Private _interval As Integer = 7
 
     ''' <summary>
     ''' Time between applns. in days
@@ -1042,7 +1533,7 @@ Public Class DriftR
     <Description("Time between applns. in days")>
     <DisplayName("Interval")>
     <Category(catSpecial)>
-    <DefaultValue(0)>
+    <DefaultValue(7)>
     <Browsable(False)>
     <TypeConverter(GetType(IntConv))>
     <AttributeProvider(
@@ -1056,146 +1547,292 @@ Public Class DriftR
         End Set
     End Property
 
-#End Region
-
-
-#Region "    RAC"
 
     <Category(catSpecial)>
-    <DisplayName(
-    "RAC")>
-    <Description(
-    "Regulatory acceptable concentration")>
     <TypeConverter(GetType(DblConv))>
-    <RefreshProperties(RefreshProperties.All)>
-    <DefaultValue(0)>
-    <Browsable(True)>
-    Public Property RAC As Double = 0
-
-
-    <Category(catSpecial)>
-    <RefreshProperties(RefreshProperties.All)>
-    <DisplayName(
-    "Buffer : Nozzle")>
+    <AttributeProvider(
+    "format= '0.0000'")>
     <Description(
-    "Min Nozzle in % to beat RAC" & vbCrLf &
-    "for Step03, 5m ,10, 15m and 20m Buffer")>
-    Public ReadOnly Property GUINozzlePerBuffer4RAC As String()
+    "(1 - e^(-1 * noOfApplns * _interval * k)) /" & vbCrLf &
+    "(1 - e^(-1              * _interval * k))")>
+    Public ReadOnly Property MAF As Double
         Get
-
-
-            Dim temp As Double
-            Dim out As New List(Of Double)
-            Dim gui As New List(Of String)
-
-            If _rate = 0 OrElse RAC = 0 OrElse _waterDepth < 0 Then
-                Return {}
+            If _noOfApplns = eNoOfApplns._01 OrElse DT50sw = 0 OrElse _interval = 0 Then
+                Return 1
             Else
+                Try
 
-                For buffer As Integer = 0 To 20 Step 5
+                    Dim k As Double
+                    Dim out As Double
+                    Dim noOfApplns As Double
 
-                    temp =
-                        CalcDriftPercent(
-                            noOfApplns:=_noOfApplns,
-                            FOCUSswDriftCrop:=_FOCUSswDriftCrop,
-                            FOCUSswWaterBody:=_FOCUSswWaterBody,
-                            ApplnMethodStep03:=_applnMethodStep03,
-                            Buffer:=buffer)
+                    noOfApplns = _noOfApplns + 1
+                    k = Math.Log(2) / DT50sw
 
-                    If Not Double.IsNaN(temp) Then
-                        temp = _rate * temp / _waterDepth
-                        temp = 100 - (RAC / temp * 100)
 
-                        If temp > 0 Then
-
-                            temp = Math.Ceiling(temp)
-                            out.Add(Math.Ceiling(temp))
-
-                            If buffer = 0 Then
-                                gui.Add("Step03 : min " & temp & "%")
-                            Else
-                                gui.Add(buffer.ToString("00") & "m    : min " & temp & "%")
-                            End If
-
-                        Else
-
-                            If buffer = 0 Then
-                                gui.Add("Step03 : - ")
-                            Else
-                                gui.Add(buffer.ToString("00") & "m    : - ")
-                            End If
-
-                            out.Add(Double.NaN)
-                        End If
-
-                    Else
-                        out.Add(Double.NaN)
-                    End If
-                Next
+                    out = (1 - Math.Exp(-1 * noOfApplns * _interval * k)) / (1 - Math.Exp(-1 * _interval * k))
+                    Return (1 - Math.Exp(-1 * noOfApplns * _interval * k)) / (1 - Math.Exp(-1 * _interval * k))
+                Catch ex As Exception
+                    Return 1
+                End Try
             End If
 
-            NozzlePerBuffer4RAC = out.ToArray
-            Return gui.ToArray
 
         End Get
     End Property
 
-
-
-    <XmlIgnore> <ScriptIgnore>
     <Category(catSpecial)>
+    <TypeConverter(GetType(DblConv))>
+    <AttributeProvider(
+    "format= '0.0000'")>
+    Public ReadOnly Property Loading As Double
+        Get
+
+            If Step03 <> " - " AndAlso _rate > 0 Then
+                Return _rate * CalcDriftPercent(
+                                    noOfApplns:=_noOfApplns,
+                                    FOCUSswDriftCrop:=_FOCUSswDriftCrop,
+                                    FOCUSswWaterBody:=_FOCUSswWaterBody,
+                                    ApplnMethodStep03:=_applnMethodStep03)
+            Else
+                Return 0
+            End If
+
+
+        End Get
+    End Property
+
+#End Region
+
+
+#End Region
+
+
+    <DebuggerBrowsable(DebuggerBrowsableState.Never)>
+    Public Const catOut As String = " 04 Output "
+
+#Region "    Output"
+
+#Region "    Buffer & Nozzles"
+
+    <DebuggerBrowsable(DebuggerBrowsableState.Never)>
+    Private _outBuffer As Double() =
+                    {
+                    0,
+                    5,
+                    10,
+                    20
+                    }
+
+    ''' <summary>
+    ''' OutBuffer
+    ''' OutBuffer in m
+    ''' </summary>
+    ''' <returns></returns>
     <RefreshProperties(RefreshProperties.All)>
-    <Browsable(False)>
-    Public Property NozzlePerBuffer4RAC As Double()
+    <DisplayName(
+    "Buffers")>
+    <Description(
+    "Buffer distances for output in m" & vbCrLf &
+    "std.: Step03, 5m, 10m, 20m")>
+    <Category(catOut)>
+    <DefaultValue(0)>
+    <Browsable(True)>
+    Public Property OutBuffer As Double()
+        Get
+            Return _outBuffer
+        End Get
+        Set
+            _outBuffer = Value
+        End Set
+    End Property
 
+    <DebuggerBrowsable(DebuggerBrowsableState.Never)>
+    Private _outNozzle As eNozzles() =
+                        {
+                        eNozzles._0,
+                        eNozzles._50,
+                        eNozzles._75,
+                        eNozzles._90
+                        }
+
+    ''' <summary>
+    ''' OutNozzle
+    ''' OutNozzle in m
+    ''' </summary>
+    ''' <returns></returns>
+    <RefreshProperties(RefreshProperties.All)>
+    <DisplayName(
+    "Nozzles")>
+    <Description(
+    "Nozzles for output in %" & vbCrLf &
+    "std.: Step03 (0%), 50%, 75%, 90%")>
+    <Category(catOut)>
+    <DefaultValue(0)>
+    <Browsable(True)>
+    Public Property OutNozzle As eNozzles()
+        Get
+            Return _outNozzle
+        End Get
+        Set
+            _outNozzle = Value
+        End Set
+    End Property
 
 
 #End Region
 
+#Region "    DGR & PMT"
+
+    <Category(catOut)>
+    <DefaultValue(0)>
+    <TypeConverter(GetType(IntConv))>
+    Public Property DGR As Integer = 0
+
+    <Category(catOut)>
+    <DefaultValue(0)>
+    <TypeConverter(GetType(IntConv))>
+    Public Property PMT As Integer = 0
+
 #End Region
+
+
+    Public Class out
+
+        Public Sub New()
+
+        End Sub
+
+        Public Enum eEntry
+
+            Entry
+            MaxSum
+            ACT01
+            ACT02
+            ACT03
+            ACT04
+            ACT07
+            ACT14
+            ACT21
+            ACT28
+            ACT42
+            ACT50
+            ACT00
+            TWA01
+            TWA02
+            TWA03
+            TWA04
+            TWA07
+            TWA14
+            TWA21
+            TWA28
+            TWA42
+            TWA50
+            TWA00
+
+        End Enum
+
+        Public Property Entry As eEntry = eEntry.Entry
+
+
+        Public Enum eParMet
+            Par
+            Met
+        End Enum
+
+        Public Property ParMet As eParMet = eParMet.Par
+
+        Public Property DGR As Integer = 0
+
+        Public Property PMT As Integer = 0
+
+        Public Property WaterBody As eFOCUSswWaterBody = eFOCUSswWaterBody.not_defined
+
+        Public Property Buffer As Integer = 0
+
+        Public Property Nozzle As Integer = 0
+
+        Public Property NoOfApplns As Integer = 0
+
+        Public Property Interval As Integer = 0
+
+        Public Property Rate As Double = 0
+
+        Public Enum eMainRoute
+            R
+            S
+            D
+        End Enum
+
+        Public Property MainRoute As eMainRoute = eMainRoute.D
+
+        Public Property MAX As String = ""
+
+        Public Property PECsw As Double = 0
+
+        Public Property PECswRACsw As Double = 0
+
+        Public Property MaxDateYear As Integer = 0
+
+        Public Property MaxDateMonth As Integer = 0
+
+        Public Property MaxDateDay As Integer = 0
+
+
+        Public Property PECsed As Double = 0
+
+        Public Property PECsedRACsed As Double = 0
+
+        Public Property FUllPath As String = ""
+
+
+    End Class
+
+
+#End Region
+
 
     <DebuggerBrowsable(DebuggerBrowsableState.Never)>
     Public Const catUse As String = " 98 Use "
 
 #Region "    Use"
 
-#Region "    BBCH"
+    '#Region "    BBCH"
 
-    <Category(catUse)>
-    <DisplayName(
-    "BBCH Start")>
-    <Description(
-    "" & vbCrLf &
-    "")>
-    <RefreshProperties(RefreshProperties.All)>
-    <DebuggerBrowsable(DebuggerBrowsableState.Collapsed)>
-    <Browsable(True)>
-    <[ReadOnly](False)>
-    <TypeConverter(GetType(IntConv))>
-    <DefaultValue(0)>
-    Public Property BBCHStart As Integer = 0
+    '    <Category(catUse)>
+    '    <DisplayName(
+    '    "BBCH Start")>
+    '    <Description(
+    '    "" & vbCrLf &
+    '    "")>
+    '    <RefreshProperties(RefreshProperties.All)>
+    '    <DebuggerBrowsable(DebuggerBrowsableState.Collapsed)>
+    '    <Browsable(True)>
+    '    <[ReadOnly](False)>
+    '    <TypeConverter(GetType(IntConv))>
+    '    <DefaultValue(0)>
+    '    Public Property BBCHStart As Integer = 0
 
-    <Category(catUse)>
-    <DisplayName(
-    "     End")>
-    <Description(
-    "" & vbCrLf &
-    "")>
-    <RefreshProperties(RefreshProperties.All)>
-    <DebuggerBrowsable(DebuggerBrowsableState.Collapsed)>
-    <Browsable(True)>
-    <[ReadOnly](False)>
-    <TypeConverter(GetType(IntConv))>
-    <DefaultValue(0)>
-    Public Property BBCHend As Integer = 0
+    '    <Category(catUse)>
+    '    <DisplayName(
+    '    "     End")>
+    '    <Description(
+    '    "" & vbCrLf &
+    '    "")>
+    '    <RefreshProperties(RefreshProperties.All)>
+    '    <DebuggerBrowsable(DebuggerBrowsableState.Collapsed)>
+    '    <Browsable(True)>
+    '    <[ReadOnly](False)>
+    '    <TypeConverter(GetType(IntConv))>
+    '    <DefaultValue(0)>
+    '    Public Property BBCHend As Integer = 0
 
-#End Region
-
+    '#End Region
 
 #End Region
 
     <DebuggerBrowsable(DebuggerBrowsableState.Never)>
-    Public Const catCalculations As String = " 99 Calculations "
+    Public Const catCalculations As String = " 05 Calculations "
 
 #Region "    Calculations"
 
@@ -1206,7 +1843,7 @@ Public Class DriftR
     ''' </summary>   
     ''' <remarks></remarks>
     '<DebuggerStepThrough>
-    Public Sub CalcDriftPercentDistances()
+    Public Sub CalcDriftPercentDistances(ByRef Distances As Distances, Nozzle As eNozzles)
 
         'check inputs
         If NoOfApplns = eNoOfApplns.not_defined OrElse
@@ -1220,16 +1857,16 @@ Public Class DriftR
 
         With Me.Regression.SingleApplnRegression
 
-            If Me.Distances.Farthest2EdgeOfWB < .HingePoint Then
-                Me.Distances.FarthestDriftPercentSingle = .A * (Distances.Farthest2EdgeOfWB ^ .B)
+            If Distances.Farthest2EdgeOfWB < .HingePoint Then
+                Distances.FarthestDriftPercentSingle = .A * (Distances.Farthest2EdgeOfWB ^ .B)
             Else
-                Me.Distances.FarthestDriftPercentSingle = .C * (Distances.Farthest2EdgeOfWB ^ .D)
+                Distances.FarthestDriftPercentSingle = .C * (Distances.Farthest2EdgeOfWB ^ .D)
             End If
 
-            If Me.Distances.Closest2EdgeOfField < .HingePoint Then
-                Me.Distances.NearestDriftPercentSingle = .A * (Distances.Closest2EdgeOfField ^ .B)
+            If Distances.Closest2EdgeOfField < .HingePoint Then
+                Distances.NearestDriftPercentSingle = .A * (Distances.Closest2EdgeOfField ^ .B)
             Else
-                Me.Distances.NearestDriftPercentSingle = .C * (Distances.Closest2EdgeOfField ^ .D)
+                Distances.NearestDriftPercentSingle = .C * (Distances.Closest2EdgeOfField ^ .D)
             End If
 
             Try
@@ -1255,7 +1892,7 @@ Public Class DriftR
             End Try
 
             ' if stream then apply upstream catchment factor 1.2
-            Me.Distances.NearestDriftPercentSingle *=
+            Distances.NearestDriftPercentSingle *=
                 IIf(
                     Expression:=_FOCUSswWaterBody = eFOCUSswWaterBody.ST,
                     TruePart:=1.2,
@@ -1263,11 +1900,11 @@ Public Class DriftR
 
 
             'drift reducing nozzles?
-            If Me.Nozzle > eNozzles._0 Then
-                Me.Distances.NearestDriftPercentSingle *= (100 - _nozzle) / 100
+            If Nozzle > eNozzles._0 Then
+                Distances.NearestDriftPercentSingle *= (100 - _nozzle) / 100
             End If
 
-            Me.Distances.FarthestDriftPercentSingle *=
+            Distances.FarthestDriftPercentSingle *=
                IIf(
                    Expression:=_FOCUSswWaterBody = eFOCUSswWaterBody.ST,
                    TruePart:=1.2,
@@ -1275,11 +1912,11 @@ Public Class DriftR
 
 
             'drift reducing nozzles?
-            If Me.Nozzle > eNozzles._0 Then
-                Me.Distances.FarthestDriftPercentSingle *= (100 - _nozzle) / 100
+            If Nozzle > eNozzles._0 Then
+                Distances.FarthestDriftPercentSingle *= (100 - _nozzle) / 100
             End If
 
-            Me.Distances.AverageDriftPercentSingle *=
+            Distances.AverageDriftPercentSingle *=
                IIf(
                    Expression:=_FOCUSswWaterBody = eFOCUSswWaterBody.ST,
                    TruePart:=1.2,
@@ -1287,8 +1924,8 @@ Public Class DriftR
 
 
             'drift reducing nozzles?
-            If Me.Nozzle > eNozzles._0 Then
-                Me.Distances.AverageDriftPercentSingle *= (100 - _nozzle) / 100
+            If Nozzle > eNozzles._0 Then
+                Distances.AverageDriftPercentSingle *= (100 - _nozzle) / 100
             End If
 
         End With
@@ -1296,16 +1933,16 @@ Public Class DriftR
 
         With Regression.MultiApplnRegression
 
-            If Me.Distances.Farthest2EdgeOfWB < .HingePoint Then
-                Me.Distances.FarthestDriftPercentMulti = .A * (Distances.Farthest2EdgeOfWB ^ .B)
+            If Distances.Farthest2EdgeOfWB < .HingePoint Then
+                Distances.FarthestDriftPercentMulti = .A * (Distances.Farthest2EdgeOfWB ^ .B)
             Else
-                Me.Distances.FarthestDriftPercentMulti = .C * (Distances.Farthest2EdgeOfWB ^ .D)
+                Distances.FarthestDriftPercentMulti = .C * (Distances.Farthest2EdgeOfWB ^ .D)
             End If
 
-            If Me.Distances.Closest2EdgeOfField < .HingePoint Then
-                Me.Distances.NearestDriftPercentMulti = .A * (Distances.Closest2EdgeOfField ^ .B)
+            If Distances.Closest2EdgeOfField < .HingePoint Then
+                Distances.NearestDriftPercentMulti = .A * (Distances.Closest2EdgeOfField ^ .B)
             Else
-                Me.Distances.NearestDriftPercentMulti = .C * (Distances.Closest2EdgeOfField ^ .D)
+                Distances.NearestDriftPercentMulti = .C * (Distances.Closest2EdgeOfField ^ .D)
             End If
 
             Try
@@ -1333,18 +1970,18 @@ Public Class DriftR
         End With
 
         ' if stream then apply upstream catchment factor 1.2
-        Me.Distances.NearestDriftPercentMulti *=
+        Distances.NearestDriftPercentMulti *=
                     IIf(
                         Expression:=_FOCUSswWaterBody = eFOCUSswWaterBody.ST,
                         TruePart:=1.2,
                         FalsePart:=1)
 
         'drift reducing nozzles?
-        If Me.Nozzle > eNozzles._0 Then
-            Me.Distances.NearestDriftPercentMulti *= (100 - _nozzle) / 100
+        If Nozzle > eNozzles._0 Then
+            Distances.NearestDriftPercentMulti *= (100 - _nozzle) / 100
         End If
 
-        Me.Distances.NearestDriftPercentMulti *=
+        Distances.NearestDriftPercentMulti *=
                    IIf(
                        Expression:=_FOCUSswWaterBody = eFOCUSswWaterBody.ST,
                        TruePart:=1.2,
@@ -1352,11 +1989,11 @@ Public Class DriftR
 
 
         'drift reducing nozzles?
-        If Me.Nozzle > eNozzles._0 Then
-            Me.Distances.FarthestDriftPercentMulti *= (100 - _nozzle) / 100
+        If Nozzle > eNozzles._0 Then
+            Distances.FarthestDriftPercentMulti *= (100 - _nozzle) / 100
         End If
 
-        Me.Distances.AverageDriftPercentMulti *=
+        Distances.AverageDriftPercentMulti *=
                    IIf(
                        Expression:=_FOCUSswWaterBody = eFOCUSswWaterBody.ST,
                        TruePart:=1.2,
@@ -1364,8 +2001,8 @@ Public Class DriftR
 
 
         'drift reducing nozzles?
-        If Me.Nozzle > eNozzles._0 Then
-            Me.Distances.AverageDriftPercentMulti *= (100 - _nozzle) / 100
+        If Nozzle > eNozzles._0 Then
+            Distances.AverageDriftPercentMulti *= (100 - _nozzle) / 100
         End If
 
 
@@ -1388,13 +2025,9 @@ Public Class DriftR
     ''' <param name="nozzle">
     ''' Drift red. nozzle as percent 0 - 100
     ''' </param>   
-    ''' <param name="bufferWidth">
+    ''' <param name="Buffer">
     ''' Buffer width in m, -1 = FOCUS std. width
     ''' </param>
-    ''' <param name="driftDistance">
-    ''' Nearest, farthest or average distance 
-    ''' std. = average
-    ''' </param> 
     ''' <remarks></remarks>
     <DebuggerStepThrough>
     Public Function CalcDriftPercent(

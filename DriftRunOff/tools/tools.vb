@@ -81,6 +81,37 @@ Public Class PropGridConverter
 End Class
 
 
+''' <summary>
+''' adds a drop down field
+''' </summary>
+Public Class dropDownList
+
+    Inherits StringConverter
+
+    ' usage :  add 
+    ' <TypeConverter(GetType(dropDownList))>
+    ' to property
+    Public Overloads Shared Property dropDownEntries As String() = {"add", "own", "entries"}
+
+#Region "Overloads Overrides"
+
+    Public Overloads Overrides Function GetStandardValuesSupported(ByVal context As ITypeDescriptorContext) As Boolean
+        Return True
+    End Function
+
+    Public Overloads Overrides Function GetStandardValues(ByVal context As ITypeDescriptorContext) As StandardValuesCollection
+        Return New StandardValuesCollection(dropDownEntries)
+    End Function
+
+    Public Overloads Overrides Function GetStandardValuesExclusive(ByVal context As ITypeDescriptorContext) As Boolean
+        Return False
+    End Function
+
+#End Region
+
+End Class
+
+
 
 ''' <summary>
 ''' enum, dbl, date, int
@@ -788,7 +819,7 @@ Public Class DateConv
     End Sub
 
 
-    Public Sub setDateParameters(formatArray As String())
+    Public Sub SetDateParameters(formatArray As String())
 
         Dim parameterValue As String()
 
@@ -854,7 +885,7 @@ Public Class DateConv
                         value As Object,
                         destType As Type) As Object
 
-        setDateParameters(
+        SetDateParameters(
         formatArray:=GetNumberParameter(
                         context:=context))
 
@@ -868,7 +899,7 @@ Public Class DateConv
             Else
 
                 Return _
-            convDate2String(
+            ConvDate2String(
                     value:=value,
                     format:=dateFormat,
                     julian:=julian,
@@ -924,7 +955,7 @@ Public Class DateConv
     ''' <param name="emptyString"></param>
     ''' <param name="country"></param>
     ''' <returns></returns>
-    Public Shared Function convDate2String(
+    Public Shared Function ConvDate2String(
                                    value As Date,
                           Optional format As String = stdDateFormat,
                           Optional julian As eJulian = stdJulian,
